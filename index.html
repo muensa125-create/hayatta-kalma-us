@@ -936,14 +936,15 @@
                 if (olaylariCalistir) {
                     // İhanet kontrolü
                     this.ihanetKontrolu();
-                    
-                    // Baskın kontrolü: ilk baskın 20. günde, sonrası rastgele
-                    if (this.baskinaKalanGun <= 0) {
-                        this.aksiyonTimerDurdur();
-                        this.baskinTetikle();
-                        this.baskinaKalanGun = 15 + Math.floor(Math.random() * 10);
-                        this.sonrakiBaskinBuyuklugu = 10 + Math.floor(Math.random() * 10);
-                    }
+                }
+
+                // Baskın kontrolü her vuruşta çalışır (hit tipinden bağımsız)
+                if (this.baskinaKalanGun <= 0) {
+                    this.baskinaKalanGun = 0; // negatife düşmesin
+                    this.aksiyonTimerDurdur();
+                    this.baskinTetikle();
+                    this.baskinaKalanGun = 15 + Math.floor(Math.random() * 10);
+                    this.sonrakiBaskinBuyuklugu = 10 + Math.floor(Math.random() * 10);
                 }
                 
                 // Kaynak tüketimi
