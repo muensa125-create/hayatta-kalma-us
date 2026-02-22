@@ -684,7 +684,7 @@
     </div><!-- /game-container -->
 
     <!-- Sürüm numarası -->
-    <div class="version-number">v1.0.8</div>
+    <div class="version-number">v1.0.9</div>
 
     <script>
         class HayattaKalmaOyunu {
@@ -1281,34 +1281,42 @@
                 const pc = document.createElement('img');
                 pc.id = 'player-character';
                 pc.src = 'images/anakarakteraltagiderken.png';
-                pc.style.cssText = 'position:absolute;width:80px;height:100px;left:50%;top:50%;transform:translate(-50%,-50%);z-index:15;object-fit:contain;';
+                pc.style.cssText = 'position:absolute;width:55px;height:70px;left:50%;top:50%;transform:translate(-50%,-50%);z-index:15;object-fit:contain;transition:left 0.3s,top 0.3s;';
                 katman.appendChild(pc);
 
                 // Hareket başlat
                 this._pcX = 50; this._pcY = 50;
-                if (!this._pcInterval) {
-                    const imgs = {
-                        up:    'images/anakarakteryukarıgiderken.png',
-                        down:  'images/anakarakteraltagiderken.png',
-                        left:  'images/anakaraktersolagiderken.png',
-                        right: 'images/anakaraktersağagiderken.png'
-                    };
-                    this._pcInterval = setInterval(() => {
-                        if (this.oyunBitti || this.duraklatildi) return;
+                this._pcYon = 'down'; // mevcut yön takibi
+                if (this._pcInterval) clearInterval(this._pcInterval);
+                const imgs = {
+                    up:    'images/anakarakteryukarıgiderken.png',
+                    down:  'images/anakarakteraltagiderken.png',
+                    left:  'images/anakaraktersolagiderken.png',
+                    right: 'images/anakaraktersağagiderken.png'
+                };
+                // Her yönde 3 adım at, sonra yön değiştir
+                let adimSayaci = 0;
+                this._pcInterval = setInterval(() => {
+                    if (this.oyunBitti || this.duraklatildi) return;
+                    // Her 3 adımda bir yön değiştir
+                    if (adimSayaci <= 0) {
                         const yonler = ['up','down','left','right'];
-                        const yon = yonler[Math.floor(Math.random()*yonler.length)];
-                        if (yon==='up')    this._pcY = Math.max(5,  this._pcY - 3);
-                        if (yon==='down')  this._pcY = Math.min(90, this._pcY + 3);
-                        if (yon==='left')  this._pcX = Math.max(5,  this._pcX - 3);
-                        if (yon==='right') this._pcX = Math.min(90, this._pcX + 3);
-                        const el = document.getElementById('player-character');
-                        if (el) {
-                            el.src = imgs[yon];
-                            el.style.left = this._pcX + '%';
-                            el.style.top  = this._pcY + '%';
-                        }
-                    }, 800);
-                }
+                        this._pcYon = yonler[Math.floor(Math.random()*yonler.length)];
+                        adimSayaci = 2 + Math.floor(Math.random()*3); // 2-4 adım
+                    }
+                    adimSayaci--;
+                    const yon = this._pcYon;
+                    if (yon==='up')    this._pcY = Math.max(5,  this._pcY - 3);
+                    if (yon==='down')  this._pcY = Math.min(90, this._pcY + 3);
+                    if (yon==='left')  this._pcX = Math.max(5,  this._pcX - 3);
+                    if (yon==='right') this._pcX = Math.min(90, this._pcX + 3);
+                    const el = document.getElementById('player-character');
+                    if (el) {
+                        el.src = imgs[yon];
+                        el.style.left = this._pcX + '%';
+                        el.style.top  = this._pcY + '%';
+                    }
+                }, 600);
 
                 // Tiplere göre indeks sayacı
                 const tipIndeksleri = { isci: 0, muhafiz: 0, sihhiyeci: 0, isyanci: 0 };
