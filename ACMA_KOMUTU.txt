@@ -1,0 +1,17 @@
+HTML DOSYASINI AÇMA KOMUTLARI:
+
+1. Komut İstemi (CMD/PowerShell) aç:
+   start chrome "C:\Users\muens\OneDrive\Desktop\deneme\deneme\index.html"
+
+2. Veya:
+   start firefox "C:\Users\muens\OneDrive\Desktop\deneme\deneme\index.html"
+
+3. Veya doğrudan kopyala:
+   copy "C:\Users\muens\OneDrive\Desktop\deneme\deneme\index.html"
+
+4. Tarayıcı adres çubuğuna yapıştır:
+   file:///C:/Users/muens/OneDrive/Desktop/deneme/deneme/index.html
+
+MOBİL TESTİ:
+- Telefonunuzda bu linki açın
+- Veya QR kod oluşturup telefonla okutun

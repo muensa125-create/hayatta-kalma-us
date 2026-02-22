@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Hayatta Kalma Üs Yönetimi - Mobil</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-dark: #15181e;
+            --bg-panel: rgba(255,255,255,0.04);
+            --border: 1px solid rgba(255,255,255,0.1);
+            --text: #d5d8dc;
+            --accent: #5dade2;
+            --danger: #c0392b;
+            --nav-h: 58px;
+            --stats-h: 72px;
+            --bg-war: url('images/OYUN SAVAŞ ARKA PLANI.png');
+            --bg-base: url('images/OYUN SAVAŞ ARKA PLANI.png');
+            --hitScale: 1;
+        }
+
+        body {
+            font-family: 'Roboto', 'Segoe UI', Helvetica, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            cursor: crosshair;
+        }
+
+        /* ── LAYOUT ─────────────────────────────── */
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Top stats bar */
+        .stats-bar {
+            flex: 0 0 var(--stats-h);
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 6px;
+            padding: 8px 10px;
+            background: rgba(0,0,0,0.55);
+            border-bottom: var(--border);
+            z-index: 100;
+        }
+
+        .stat-chip {
+            background: var(--bg-panel);
+            border: var(--border);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 2px;
+            gap: 1px;
+        }
+
+        .stat-chip .label {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--accent);
+            opacity: 0.8;
+        }
+
+        .stat-chip .value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .stat-chip.danger .value { color: var(--danger); }
+
+        /* Middle scene area */
+        .scene-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        /* Screens inside scene-area */
+        .screen {
+            display: none;
+            position: absolute;
+            inset: 0;
+            flex-direction: column;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* ── BOTTOM NAV ───────────────────────── */
+        .bottom-tabs {
+            flex: 0 0 var(--nav-h);
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            background: rgba(0,0,0,0.7);
+            border-top: var(--border);
+            z-index: 1200;
+            gap: 6px;
+            padding: 6px;
+        }
+
+        .tab-btn {
+            background: var(--bg-panel);
+            border: var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            cursor: pointer;
+            user-select: none;
+            transition: border-color 0.15s, color 0.15s;
+        }
+
+        .tab-btn.active {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .tab-sub {
+            font-size: 10px;
+            font-weight: 400;
+            opacity: 0.6;
+        }
+
+        /* ── WAR SCREEN ────────────────────── */
+        #screen-war {
+            background: rgba(10,12,16,0.85);
+            background-image: var(--bg-war);
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-area {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .timer {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent);
+            background: rgba(0,0,0,0.65);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: var(--border);
+            letter-spacing: 1px;
+            z-index: 10;
+        }
+
+        .character-container {
+            position: relative;
+            width: 160px;
+            height: 240px;
+        }
+
+        .side-characters {
+            position: absolute;
+            left: -140px;
+            top: -140px;
+            width: calc(100% + 280px);
+            height: calc(100% + 280px);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .side-characters .base-character {
+            width: 130px;
+            height: 130px;
+            position: absolute;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            border: none;
+            box-shadow: none;
+            background-color: transparent;
+            opacity: 0.88;
+        }
+
+        .character {
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: all 0.25s ease;
+            position: relative;
+            z-index: 3;
+        }
+
+        .character.normal    { background-image: url('images/isyancı.png'); }
+        .character.head-shot  { background-image: url('images/kafasından vurulan isyancı.png'); }
+        .character.chest-shot { background-image: url('images/göğsünden vurulan düşman.png'); }
+        .character.leg-shot   { background-image: url('images/ayaktan vurulan düşman.png'); }
+
+        .hit-zone { position: absolute; cursor: pointer; z-index: 6; pointer-events: auto; }
+        .hit-zone:hover { background: rgba(255,255,255,0.08); border-radius: 50%; }
+        .head-zone  { width: calc(40px * var(--hitScale,1)); height: calc(40px * var(--hitScale,1)); top: 10%; left: 50%; transform: translateX(-50%); }
+        .chest-zone { width: calc(50px * var(--hitScale,1)); height: calc(50px * var(--hitScale,1)); top: 40%; left: 50%; transform: translateX(-50%); }
+        .leg-zone   { width: calc(45px * var(--hitScale,1)); height: calc(45px * var(--hitScale,1)); bottom: 10%; left: 50%; transform: translateX(-50%); }
+
+        /* ── BASE SCREEN ──────────────────────── */
+        #screen-base { overflow-y: auto; }
+
+        #base-stage {
+            flex: 1;
+            min-height: 220px;
+            position: relative;
+            background-image: var(--bg-base);
+            background-size: cover;
+            background-position: center bottom;
+            overflow: hidden;
+            border-bottom: 5px solid rgba(44,62,80,0.9);
+        }
+
+        @keyframes walkRight {
+            from { transform: translateX(-80px); }
+            to   { transform: translateX(110vw); }
+        }
+
+        .walker {
+            position: absolute;
+            bottom: 8px;
+            width: 52px;
+            height: 52px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: bottom center;
+            animation: walkRight linear infinite;
+        }
+        .walker.isci      { background-image: url('images/işci.png'); }
+        .walker.muhafiz   { background-image: url('images/muhafız.png'); }
+        .walker.sihhiyeci { background-image: url('images/doktor (1).png'); }
+        .walker.isyanci   { background-image: url('images/isyancı.png'); }
+
+        .base-info-bar {
+            flex: 0 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            padding: 8px 10px;
+            background: rgba(0,0,0,0.55);
+        }
+
+        .base-chip {
+            background: var(--bg-panel);
+            border: var(--border);
+            border-radius: 6px;
+            padding: 5px 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .base-chip .blabel { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--accent); }
+        .base-chip .bval   { font-size: 13px; font-weight: 700; color: var(--text); }
+
+        .raid-bar {
+            flex: 0 0 auto;
+            background: rgba(192,57,43,0.12);
+            border-top: 1px solid rgba(192,57,43,0.35);
+            padding: 6px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--danger);
+            animation: pulse 2s infinite;
+        }
+
+        .hp-strip {
+            flex: 0 0 5px;
+            background: rgba(0,0,0,0.4);
+        }
+        .hp-strip-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--danger), #e74c3c);
+            transition: width 0.3s;
+        }
+
+        /* ── SETTINGS SCREEN ──────────────────── */
+        #screen-settings {
+            overflow-y: auto;
+            padding: 12px;
+            gap: 10px;
+        }
+
+        .settings-group {
+            background: var(--bg-panel);
+            border: var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .settings-title {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .settings-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 0;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .settings-row:first-of-type { border-top: none; }
+
+        .settings-label { font-size: 13px; color: var(--text); }
+        .settings-hint  { font-size: 10px; opacity: 0.5; margin-top: 2px; }
+
+        .settings-control { display: flex; align-items: center; gap: 8px; }
+
+        .toggle {
+            width: 48px; height: 26px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(0,0,0,0.4);
+            position: relative; cursor: pointer;
+        }
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 3px;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            transform: translateY(-50%);
+            background: rgba(200,200,200,0.8);
+            transition: left 0.15s;
+        }
+        .toggle.on { border-color: var(--accent); }
+        .toggle.on::after { left: 26px; background: var(--accent); }
+
+        input[type="range"] { width: 140px; accent-color: var(--accent); }
+
+        .control-button {
+            background: var(--bg-panel);
+            border: var(--border);
+            color: var(--text);
+            font-family: inherit;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 3px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .control-button:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* ── SHARED UTILITIES ─────────────────── */
+        @keyframes pulse { 0%,100%{opacity:.7} 50%{opacity:1} }
+
+        .crosshair {
+            position: fixed;
+            width: 40px; height: 40px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="15" fill="none" stroke="white" stroke-width="2"/><line x1="20" y1="5" x2="20" y2="35" stroke="white" stroke-width="2"/><line x1="5" y1="20" x2="35" y2="20" stroke="white" stroke-width="2"/></svg>') no-repeat center;
+            background-size: contain;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+        }
+
+        .hit-effect {
+            position: fixed;
+            width: 50px; height: 50px;
+            border: 3px solid #f39c12;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: hit-burst 0.5s ease-out forwards;
+            transform: translate(-50%, -50%);
+            z-index: 9998;
+        }
+        @keyframes hit-burst {
+            0%   { transform: translate(-50%,-50%) scale(0.3); opacity: 1; }
+            100% { transform: translate(-50%,-50%) scale(1.8); opacity: 0; }
+        }
+
+        .hp-bar { width: 100%; height: 6px; background: rgba(0,0,0,0.4); overflow: hidden; }
+        .hp-fill { height: 100%; background: linear-gradient(90deg, var(--danger), #e74c3c); transition: width 0.3s; }
+
+        .game-over {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.92);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999;
+        }
+        .game-over-content {
+            background: rgba(21,24,30,0.98);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            padding: 28px 32px;
+            text-align: center;
+            max-width: 280px;
+        }
+        .game-over-title { font-size: 22px; font-weight: 700; color: var(--accent); margin-bottom: 8px; letter-spacing: 2px; }
+        .game-over-text  { font-size: 14px; color: var(--text); margin-bottom: 18px; opacity: 0.8; }
+        .restart-btn {
+            background: var(--accent);
+            border: none; color: #fff;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-size: 13px; font-weight: 700;
+            cursor: pointer; letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="crosshair" id="crosshair"></div>
+
+    <div class="game-container">
+
+        <!-- ── ÜST İSTATİSTİK BARI ── -->
+        <div class="stats-bar">
+            <div class="stat-chip">
+                <span class="label">CAN</span>
+                <span class="value" id="hp">100</span>
+            </div>
+            <div class="stat-chip">
+                <span class="label">NÜFUS</span>
+                <span class="value" id="population">0/50</span>
+            </div>
+            <div class="stat-chip">
+                <span class="label">GIDA</span>
+                <span class="value" id="food">100</span>
+            </div>
+            <div class="stat-chip">
+                <span class="label">GÜN</span>
+                <span class="value" id="day">1</span>
+            </div>
+        </div>
+
+        <!-- ── ORTA SAHNE ALANI ── -->
+        <div class="scene-area">
+
+            <!-- SAVAŞ EKRANı -->
+            <div class="screen active" id="screen-war">
+                <div class="action-area" id="action-area">
+                    <div class="timer" id="timer">Süre: 5.0</div>
+                    <div class="character-container">
+                        <div class="side-characters" id="side-characters"></div>
+                        <div class="character normal" id="target-character"></div>
+                        <div class="hit-zone head-zone"  data-target="head"  title="BAŞ"></div>
+                        <div class="hit-zone chest-zone" data-target="chest" title="GÖĞÜS"></div>
+                        <div class="hit-zone leg-zone"   data-target="leg"   title="BACAK"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANA ÜS EKRANı -->
+            <div class="screen" id="screen-base">
+                <!-- Animasyonlu sahne -->
+                <div id="base-stage"></div>
+
+                <!-- HP şeridi -->
+                <div class="hp-strip">
+                    <div class="hp-strip-fill" id="base_hp_bar" style="width:100%"></div>
+                </div>
+
+                <!-- Nüfus bilgi çipleri -->
+                <div class="base-info-bar">
+                    <div class="base-chip"><span class="blabel">Muhafız</span><span class="bval" id="base_guards">-</span></div>
+                    <div class="base-chip"><span class="blabel">Sıhhiyeci</span><span class="bval" id="base_healers">-</span></div>
+                    <div class="base-chip"><span class="blabel">İşçi</span><span class="bval" id="base_workers">-</span></div>
+                    <div class="base-chip"><span class="blabel">İsyancı</span><span class="bval" id="base_rebels">-</span></div>
+                    <div class="base-chip"><span class="blabel">Gıda</span><span class="bval" id="base_food">-</span></div>
+                    <div class="base-chip"><span class="blabel">İlaç</span><span class="bval" id="base_medicine">-</span></div>
+                </div>
+
+                <!-- Baskın uyarı barı -->
+                <div class="raid-bar">
+                    <span>⚠ BASKIN</span>
+                    <span id="base_raid_timer">-</span>
+                    <span id="base_raid_size">-</span>
+                </div>
+            </div>
+
+            <!-- AYARLAR EKRANı -->
+            <div class="screen" id="screen-settings">
+                <div class="settings-group">
+                    <div class="settings-title">Oyun Ayarları</div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-label">Titreşim</div>
+                            <div class="settings-hint">Vuruşta kısa titreşim</div>
+                        </div>
+                        <div class="settings-control">
+                            <div id="set_vibration" class="toggle on" role="switch" aria-checked="true"></div>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-label">Nişangah Hassasiyeti</div>
+                            <div class="settings-hint">Dokunmatik için hedef boyutu</div>
+                        </div>
+                        <div class="settings-control">
+                            <input id="set_sensitivity" type="range" min="50" max="200" value="100">
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-label">Pil Modu</div>
+                            <div class="settings-hint">Animasyonları azaltır</div>
+                        </div>
+                        <div class="settings-control">
+                            <div id="set_battery" class="toggle" role="switch" aria-checked="false"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-title">Oyun Kontrolü</div>
+                    <div style="display:flex; gap:8px; padding-top:6px;">
+                        <button class="control-button" style="flex:1" onclick="game.duraklat()">Durdur / Devam</button>
+                        <button class="control-button" style="flex:1" onclick="game.restart()">Yeniden Başlat</button>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-title">Bilgi</div>
+                    <div class="settings-row">
+                        <div class="settings-label">Saat</div>
+                        <div style="font-size:13px; color:var(--accent)" id="ui_clock">--:--</div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /scene-area -->
+
+        <!-- ── ALT NAVİGASYON ── -->
+        <div class="bottom-tabs" role="tablist">
+            <button class="tab-btn" id="tab-base" data-screen="base" aria-selected="false">
+                <span>ANA ÜS</span>
+                <span class="tab-sub">Yönetim</span>
+            </button>
+            <button class="tab-btn active" id="tab-war" data-screen="war" aria-selected="true">
+                <span>SAVAŞ</span>
+                <span class="tab-sub">Nişangah</span>
+            </button>
+            <button class="tab-btn" id="tab-settings" data-screen="settings" aria-selected="false">
+                <span>AYARLAR</span>
+                <span class="tab-sub" id="tab-clock">--:--</span>
+            </button>
+        </div>
+
+    </div><!-- /game-container -->
+
+    <script>
+        class HayattaKalmaOyunu {
+            constructor() {
+                this.oyuncuHp = 100;
+                this.mevcutGun = 1;
+                this.baskinaKalanGun = 3;
+                this.sonrakiBaskinBuyuklugu = 10;
+                this.usNufusu = [];
+                this.nufusLimiti = 50;
+                this.kaynaklar = { gida: 100, ilac: 50, malzeme: 75 };
+                this.oyunBitti = false;
+                this.duraklatildi = false;
+                this.kalanSure = 5.0;
+                this.timerInterval = null;
+
+                this.yanKarakterler = [];
+
+                this.ayarlar = {
+                    ses: 80,
+                    titresim: true,
+                    hassasiyet: 100,
+                    pilModu: false
+                };
+                
+                this.init();
+            }
+
+            init() {
+                // Başlangıç nüfusu
+                this.karakterEkle('isci', 'sadik');
+                this.karakterEkle('muhafiz', 'sadik');
+                this.karakterEkle('sihhiyeci', 'sadik');
+
+                this.yeniKarsilasmaOlustur();
+                
+                this.arayuzuGuncelle();
+                this.aksiyonTimerBaslat(true);
+                this.karakterleriAnimasyonla();
+                this.nisangahKurulumu();
+            }
+
+            yeniKarsilasmaOlustur() {
+                // Düşmanla birlikte ortaya çıkan rastgele yan karakterler
+                const olasiTipler = ['isci', 'muhafiz', 'sihhiyeci'];
+                const adet = Math.floor(Math.random() * 4); // 0-3
+                this.yanKarakterler = [];
+                for (let i = 0; i < adet; i++) {
+                    const tip = olasiTipler[Math.floor(Math.random() * olasiTipler.length)];
+                    const kisilik = tip === 'muhafiz' ? 'sadik' : this.rastgeleKisilik();
+                    this.yanKarakterler.push({ tip, kisilik });
+                }
+                this.yanKarakterleriCiz();
+            }
+
+            yanKarakterleriCiz() {
+                const alan = document.getElementById('side-characters');
+                if (!alan) return;
+                alan.innerHTML = '';
+
+                const w = alan.clientWidth || 180;
+                const h = alan.clientHeight || 250;
+
+                // Düşmanın etrafındaki sabit slotlar (yüzde olarak)
+                const slots = [
+                    { x: 25, y: 40 },
+                    { x: 75, y: 40 },
+                    { x: 20, y: 72 },
+                    { x: 80, y: 72 },
+                    { x: 50, y: 82 }
+                ];
+
+                this.yanKarakterler.forEach((k, i) => {
+                    const el = document.createElement('div');
+                    el.className = `base-character ${k.tip}`;
+
+                    const slot = slots[i % slots.length];
+                    const x = (slot.x / 100) * w;
+                    const y = (slot.y / 100) * h;
+                    el.style.left = `${x}px`;
+                    el.style.top = `${y}px`;
+
+                    alan.appendChild(el);
+                });
+            }
+
+            nisangahKurulumu() {
+                // Nişangah takibi
+                document.addEventListener('mousemove', (e) => {
+                    if (window.uiDurum?.aktifEkran !== 'war') return;
+                    const crosshair = document.getElementById('crosshair');
+                    crosshair.style.left = e.clientX + 'px';
+                    crosshair.style.top = e.clientY + 'px';
+                });
+
+                // Gizli hedef bölgelerine tıklama
+                document.querySelectorAll('.hit-zone').forEach(zone => {
+                    zone.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const hedef = zone.dataset.target;
+                        const rect = zone.getBoundingClientRect();
+                        const centerX = rect.left + rect.width / 2;
+                        const centerY = rect.top + rect.height / 2;
+                        this.vur(hedef, centerX, centerY);
+                    });
+                });
+
+                // Karakterin kendisine tıklama (iskalama)
+                document.getElementById('target-character').addEventListener('click', (e) => {
+                    if (e.target.id === 'target-character') {
+                        this.vur('missed', e.clientX, e.clientY);
+                    }
+                });
+            }
+
+            karakterEkle(tip, kisilik) {
+                if (this.usNufusu.length < this.nufusLimiti) {
+                    this.usNufusu.push({
+                        id: Date.now(),
+                        tip: tip,
+                        kisilik: kisilik,
+                        saglik: 100,
+                        yarali: false,
+                        usdeGunu: 0
+                    });
+                }
+            }
+
+            vur(hedef, x, y) {
+                if (this.oyunBitti || this.duraklatildi) return;
+                
+                this.aksiyonTimerDurdur();
+                this.vurusEfektiGoster(x, y);
+                this.karakterGorseliniGuncelle(hedef);
+                
+                let sonuc = this.aksiyonIsle(hedef);
+                this.geriBildirimGoster(hedef, sonuc);
+
+                // Gün ilerlemesi: head/chest vuruşlarında baskın/ihanet tetikleme
+                const olaylariCalistir = !(hedef === 'head' || hedef === 'chest');
+                this.gunuIlerle(olaylariCalistir);
+
+                // Düşman etkisiz hale geldiyse yan karakterler üsse gelsin
+                if (sonuc.basarili) {
+                    this.yanKarakterler.forEach(k => this.karakterEkle(k.tip, k.kisilik));
+                    this.yeniKarsilasmaOlustur();
+                }
+                
+                this.arayuzuGuncelle();
+                
+                // 1 saniye sonra karakteri normale döndür ve yeni hedef oluştur
+                setTimeout(() => {
+                    this.karakteriNormaleDondur();
+                    this.aksiyonTimerBaslat(true);
+                }, 1000);
+            }
+
+            karakterGorseliniGuncelle(hedef) {
+                const character = document.getElementById('target-character');
+                character.className = 'character';
+                
+                switch(hedef) {
+                    case 'head':
+                        character.classList.add('head-shot');
+                        break;
+                    case 'chest':
+                        character.classList.add('chest-shot');
+                        break;
+                    case 'leg':
+                        character.classList.add('leg-shot');
+                        break;
+                }
+            }
+
+            karakteriNormaleDondur() {
+                const character = document.getElementById('target-character');
+                character.className = 'character normal';
+            }
+
+            vurusEfektiGoster(x, y) {
+                if (this.ayarlar.titresim && typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+                    navigator.vibrate(20);
+                }
+                const etki = document.createElement('div');
+                etki.className = 'hit-effect';
+                etki.style.left = x + 'px';
+                etki.style.top = y + 'px';
+                document.body.appendChild(etki);
+                
+                setTimeout(() => {
+                    etki.remove();
+                }, 600);
+            }
+
+            aksiyonIsle(hedef) {
+                let sonuc = { basarili: false, nufusDegisimi: 0, alinanHasar: 0 };
+                
+                switch(hedef) {
+                    case 'head':
+                        // Kafadan vurunca öldürür, can azalmaz
+                        sonuc.basarili = true;
+                        sonuc.nufusDegisimi = 1;
+                        this.karakterEkle('isci', 'sadik');
+                        break;
+                    case 'chest':
+                        // Göğüsten vurunca ikisi de kurtulur, can azalmaz
+                        sonuc.basarili = true;
+                        sonuc.nufusDegisimi = 2;
+                        this.karakterEkle('isci', 'sadik');
+                        this.karakterEkle('isyanci', this.rastgeleKisilik());
+                        this.usNufusu[this.usNufusu.length - 1].yarali = true;
+                        break;
+                    case 'leg':
+                        // Bacaktan vurunca 50% ihtimal karşı saldırı
+                        if (Math.random() < 0.5) {
+                            sonuc.basarili = true;
+                            sonuc.nufusDegisimi = 1;
+                            this.karakterEkle('isci', 'guvensiz');
+                        } else {
+                            // Sadece bacakta karşı saldırı olur
+                            sonuc.alinanHasar = 15;
+                            this.oyuncuHp -= 15;
+                        }
+                        break;
+                    case 'missed':
+                        sonuc.basarili = false;
+                        break;
+                }
+                
+                this.oyunBittiKontrol();
+                return sonuc;
+            }
+
+            rastgeleKisilik() {
+                const kisilikler = ['sadik', 'guvensiz', 'kurnaz'];
+                return kisilikler[Math.floor(Math.random() * kisilikler.length)];
+            }
+
+            gunuIlerle(olaylariCalistir = true) {
+                if (this.oyunBitti || this.duraklatildi) return;
+                
+                this.mevcutGun++;
+                this.baskinaKalanGun--;
+                
+                // Gün ilerleme
+                this.usNufusu.forEach(karakter => karakter.usdeGunu++);
+                
+                if (olaylariCalistir) {
+                    // İhanet kontrolü
+                    this.ihanetKontrolu();
+                    
+                    // Baskın kontrolü
+                    if (this.baskinaKalanGun <= 0) {
+                        this.baskinTetikle();
+                        this.baskinaKalanGun = 3 + Math.floor(Math.random() * 3);
+                        this.sonrakiBaskinBuyuklugu = 8 + Math.floor(Math.random() * 8);
+                    }
+                }
+                
+                // Kaynak tüketimi
+                this.kaynaklariTuket();
+            }
+
+            ihanetKontrolu() {
+                this.usNufusu = this.usNufusu.filter(karakter => {
+                    if (karakter.tip === 'isyanci') {
+                        const sans = this.ihanetSansiHesapla(karakter);
+                        if (Math.random() < sans) {
+                            this.ihanetIsle(karakter);
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+            }
+
+            ihanetSansiHesapla(karakter) {
+                let sans = 0.1;
+                switch(karakter.kisilik) {
+                    case 'guvensiz': sans = 0.3; break;
+                    case 'kurnaz': sans = 0.2; break;
+                    case 'sadik': sans = 0.05; break;
+                }
+                if (karakter.yarali) sans += 0.1;
+                if (karakter.usdeGunu > 7) sans += 0.1;
+                return Math.min(sans, 0.5);
+            }
+
+            ihanetIsle(ihancı) {
+                const index = this.usNufusu.indexOf(ihancı);
+                if (index > -1) this.usNufusu.splice(index, 1);
+                
+                const etki = Math.floor(Math.random() * 3);
+                switch(etki) {
+                    case 0: this.oyuncuHp -= 20; break;
+                    case 1: this.kaynaklar.gida -= 30; break;
+                    case 2: 
+                        if (this.usNufusu.length > 0) {
+                            const kurbanIndex = Math.floor(Math.random() * this.usNufusu.length);
+                            this.usNufusu.splice(kurbanIndex, 1);
+                        }
+                        break;
+                }
+            }
+
+            baskinTetikle() {
+                const muhafizSayisi = this.usNufusu.filter(karakter => karakter.tip === 'muhafiz').length;
+                if (muhafizSayisi < this.sonrakiBaskinBuyuklugu) {
+                    const hasar = this.sonrakiBaskinBuyuklugu - muhafizSayisi;
+                    this.oyuncuHp -= hasar * 5;
+                    
+                    const kayiplar = Math.min(hasar, this.usNufusu.length);
+                    for (let i = 0; i < kayiplar; i++) {
+                        if (this.usNufusu.length > 0) {
+                            const index = Math.floor(Math.random() * this.usNufusu.length);
+                            this.usNufusu.splice(index, 1);
+                        }
+                    }
+                }
+            }
+
+            kaynaklariTuket() {
+                const nufusBuyuklugu = this.usNufusu.length;
+                this.kaynaklar.gida -= nufusBuyuklugu;
+                
+                const yaraliSayisi = this.usNufusu.filter(karakter => karakter.yarali).length;
+                this.kaynaklar.ilac -= yaraliSayisi * 2;
+                
+                this.kaynaklar.gida = Math.max(0, this.kaynaklar.gida);
+                this.kaynaklar.ilac = Math.max(0, this.kaynaklar.ilac);
+                this.kaynaklar.malzeme = Math.max(0, this.kaynaklar.malzeme);
+            }
+
+            oyunBittiKontrol() {
+                if (this.oyuncuHp <= 0 || this.usNufusu.length === 0) {
+                    this.oyunBitti = true;
+                    this.oyunBittiGoster(false);
+                } else if (this.mevcutGun >= 100) {
+                    this.oyunBitti = true;
+                    this.oyunBittiGoster(true);
+                }
+            }
+
+            aksiyonTimerBaslat(yenidenBaslat = true) {
+                // Savaş sekmesi dışında süre akmasın
+                if (window.uiDurum?.aktifEkran && window.uiDurum.aktifEkran !== 'war') return;
+
+                // Çift interval oluşmasını engelle
+                this.aksiyonTimerDurdur();
+
+                // Her yeni kişi için 5 saniye ver (resume'da sıfırlama)
+                if (yenidenBaslat) this.kalanSure = 5.0;
+                this.timerInterval = setInterval(() => {
+                    if (!this.duraklatildi && !this.oyunBitti) {
+                        if (window.uiDurum?.aktifEkran && window.uiDurum.aktifEkran !== 'war') return;
+                        this.kalanSure -= 0.1;
+                        document.getElementById('timer').textContent = `Süre: ${this.kalanSure.toFixed(1)}`;
+                        
+                        if (this.kalanSure <= 0) {
+                            this.aksiyonTimerDurdur();
+                            this.vur('missed', window.innerWidth / 2, window.innerHeight / 2);
+                        }
+                    }
+                }, 100);
+            }
+
+            aksiyonTimerDurdur() {
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+            }
+
+            geriBildirimGoster(hedef, sonuc) {
+                const timerElement = document.getElementById('timer');
+                let geriBildirimMetni = '';
+                
+                switch(hedef) {
+                    case 'head':
+                        geriBildirimMetni = sonuc.basarili ? 'BAŞ VURUŞU! (+1)' : 'İSKALADIN!';
+                        break;
+                    case 'chest':
+                        geriBildirimMetni = sonuc.basarili ? 'GÖĞÜS VURUŞU! (+2)' : 'İSKALADIN!';
+                        break;
+                    case 'leg':
+                        geriBildirimMetni = sonuc.basarili ? 'BACAK VURUŞU! (+1)' : `KARŞI SALDIRI! -${sonuc.alinanHasar} HP`;
+                        break;
+                    case 'missed':
+                        geriBildirimMetni = 'HEDEF İSKALANDI!';
+                        break;
+                }
+                
+                timerElement.textContent = geriBildirimMetni;
+                timerElement.style.color = sonuc.basarili ? '#4aff4a' : '#ff4a4a';
+                
+                setTimeout(() => {
+                    timerElement.style.color = 'var(--accent)';
+                }, 2000);
+            }
+
+            arayuzuGuncelle() {
+                const setText = (id, value) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = value;
+                };
+                const setWidth = (id, value) => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.width = value;
+                };
+
+                const ist = this.nufusIstatistikleri();
+
+                // Üst istatistik barı (her zaman görünür)
+                setText('hp', this.oyuncuHp);
+                setText('population', `${ist.toplam}/${this.nufusLimiti}`);
+                setText('food', this.kaynaklar.gida);
+                setText('day', this.mevcutGun);
+
+                // Ana Üs ekranı bilgileri
+                setText('base_guards',   ist.muhafizlar);
+                setText('base_healers',  ist.sihhiyeciler);
+                setText('base_workers',  ist.isciler);
+                setText('base_rebels',   ist.isyancilar);
+                setText('base_food',     this.kaynaklar.gida);
+                setText('base_medicine', this.kaynaklar.ilac);
+                setText('base_raid_timer', `${this.baskinaKalanGun} gün`);
+                setText('base_raid_size',  `${this.sonrakiBaskinBuyuklugu} isyancı`);
+                setWidth('base_hp_bar', `${Math.max(0, this.oyuncuHp)}%`);
+
+                // Yan karakterleri savaş ekranında çiz
+                this.yanKarakterleriCiz();
+            }
+
+            nufusIstatistikleri() {
+                const istatistikler = { toplam: 0, muhafizlar: 0, sihhiyeciler: 0, isciler: 0, isyancilar: 0 };
+                this.usNufusu.forEach(karakter => {
+                    istatistikler.toplam++;
+                    const tipMap = {
+                        isci: 'isciler',
+                        muhafiz: 'muhafizlar',
+                        sihhiyeci: 'sihhiyeciler',
+                        isyanci: 'isyancilar'
+                    };
+                    const anahtar = tipMap[karakter.tip];
+                    if (anahtar && typeof istatistikler[anahtar] === 'number') {
+                        istatistikler[anahtar]++;
+                    }
+                });
+                return istatistikler;
+            }
+
+            karakterGorunumunuGuncelle() {
+                // Artık base-stage walker sistemi kullanıyor, bu fonksiyon boş kalabilir
+            }
+
+            walkerEkle(tip) {
+                if (this.ayarlar.pilModu) return;
+                const sahne = document.getElementById('base-stage');
+                if (!sahne) return;
+
+                const walker = document.createElement('div');
+                walker.className = `walker ${tip}`;
+
+                // Rastgele süre ve dikey konum
+                const sure = 10 + Math.random() * 12; // 10-22 saniye
+                const altOffset = 4 + Math.random() * 20; // zemin üzerinde biraz farklı yükseklik
+                walker.style.animationDuration = `${sure}s`;
+                walker.style.bottom = `${altOffset}px`;
+                walker.style.animationDelay = `${-Math.random() * sure}s`; // hemen başlasın
+
+                sahne.appendChild(walker);
+
+                // Animasyon bitince kaldır ve yeniden ekle (sonsuz döngü için)
+                walker.addEventListener('animationiteration', () => {
+                    walker.style.bottom = `${4 + Math.random() * 20}px`;
+                });
+            }
+
+            karakterleriAnimasyonla() {
+                // Mevcut nüfusu sahneye yansıt
+                const sahne = document.getElementById('base-stage');
+                if (!sahne) return;
+                sahne.innerHTML = '';
+
+                this.usNufusu.forEach(k => this.walkerEkle(k.tip));
+
+                // Nüfus değişimlerini periyodik olarak senkronize et
+                setInterval(() => {
+                    if (this.duraklatildi || this.oyunBitti || this.ayarlar.pilModu) return;
+                    const sahne = document.getElementById('base-stage');
+                    if (!sahne) return;
+                    const mevcutSayi = sahne.querySelectorAll('.walker').length;
+                    const hedefSayi = this.usNufusu.length;
+                    if (mevcutSayi < hedefSayi) {
+                        // Yeni katılanları ekle
+                        for (let i = mevcutSayi; i < hedefSayi; i++) {
+                            this.walkerEkle(this.usNufusu[i].tip);
+                        }
+                    } else if (mevcutSayi > hedefSayi) {
+                        // Fazla walker'ları kaldır
+                        const walkers = sahne.querySelectorAll('.walker');
+                        for (let i = hedefSayi; i < mevcutSayi; i++) {
+                            walkers[i].remove();
+                        }
+                    }
+                }, 2000);
+            }
+
+            oyunBittiGoster(kazandi) {
+                const oyunBittiDiv = document.createElement('div');
+                oyunBittiDiv.className = 'game-over';
+                oyunBittiDiv.innerHTML = `
+                    <div class="game-over-content">
+                        <div class="game-over-title">${kazandi ? 'ZAFER!' : 'OYUN BİTTİ'}</div>
+                        <div class="game-over-text">${kazandi ? '100 gün hayatta kaldın!' : 'Hayatta kalamadın...'}</div>
+                        <button class="restart-btn" onclick="game.restart()">Tekrar Oyna</button>
+                    </div>
+                `;
+                document.body.appendChild(oyunBittiDiv);
+            }
+
+            duraklat() {
+                this.duraklatildi = !this.duraklatildi;
+                const button = document.querySelector('.control-button');
+                if (button) {
+                    button.textContent = this.duraklatildi ? 'Oyuna Devam Et' : 'Durdur/Devam';
+                }
+            }
+
+            restart() {
+                this.oyuncuHp = 100;
+                this.mevcutGun = 1;
+                this.baskinaKalanGun = 3;
+                this.sonrakiBaskinBuyuklugu = 10;
+                this.usNufusu = [];
+                this.kaynaklar = { gida: 100, ilac: 50, malzeme: 75 };
+                this.oyunBitti = false;
+                this.duraklatildi = false;
+
+                const oyunBittiDiv = document.querySelector('.game-over');
+                if (oyunBittiDiv) oyunBittiDiv.remove();
+
+                // Base sahnesini temizle
+                const sahne = document.getElementById('base-stage');
+                if (sahne) sahne.innerHTML = '';
+
+                this.init();
+            }
+        }
+
+        // Oyunu başlat
+        const game = new HayattaKalmaOyunu();
+
+        // Klavye kontrolleri
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case ' ':
+                    e.preventDefault();
+                    game.duraklat();
+                    break;
+                case 'r':
+                case 'R':
+                    game.restart();
+                    break;
+            }
+        });
+
+        // Touch kontrolleri
+        document.addEventListener('touchstart', (e) => {
+            if (window.uiDurum?.aktifEkran !== 'war') return;
+            const touch = e.touches[0];
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            if (target && target.classList.contains('hit-zone')) {
+                const hedef = target.dataset.target;
+                game.vur(hedef, touch.clientX, touch.clientY);
+            } else {
+                game.vur('missed', touch.clientX, touch.clientY);
+            }
+        });
+
+        window.uiDurum = { aktifEkran: 'war' };
+
+        function ikiHane(n) {
+            return String(n).padStart(2, '0');
+        }
+
+        function saatMetni() {
+            const d = new Date();
+            return `${ikiHane(d.getHours())}:${ikiHane(d.getMinutes())}`;
+        }
+
+        function ayarlarToggle(el) {
+            const acik = el.classList.toggle('on');
+            el.setAttribute('aria-checked', acik ? 'true' : 'false');
+            return acik;
+        }
+
+        function anaUsEkraniniGuncelle() {
+            if (typeof game === 'undefined') return;
+            game.arayuzuGuncelle();
+        }
+
+        function ekranAyarla(hedef) {
+            const onceki = window.uiDurum.aktifEkran;
+            window.uiDurum.aktifEkran = hedef;
+
+            ['war', 'base', 'settings'].forEach(k => {
+                const scr = document.getElementById(`screen-${k}`);
+                const tab = document.getElementById(`tab-${k}`);
+                if (scr) scr.classList.toggle('active', k === hedef);
+                if (tab) {
+                    tab.classList.toggle('active', k === hedef);
+                    tab.setAttribute('aria-selected', k === hedef ? 'true' : 'false');
+                }
+            });
+
+            const crosshair = document.getElementById('crosshair');
+            if (crosshair) crosshair.style.display = hedef === 'war' ? 'block' : 'none';
+
+            if (hedef === 'base') anaUsEkraniniGuncelle();
+
+            // Timer: savaş dışına çıkınca durdur, geri dönünce devam et
+            if (onceki === 'war' && hedef !== 'war') game.aksiyonTimerDurdur();
+            if (hedef === 'war' && onceki !== 'war') game.aksiyonTimerBaslat(false);
+        }
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const hedef = btn.dataset.screen;
+                if (hedef) ekranAyarla(hedef);
+            });
+        });
+
+        const vib = document.getElementById('set_vibration');
+        if (vib) {
+            vib.addEventListener('click', () => {
+                game.ayarlar.titresim = ayarlarToggle(vib);
+            });
+        }
+
+        const sens = document.getElementById('set_sensitivity');
+        if (sens) {
+            sens.addEventListener('input', () => {
+                game.ayarlar.hassasiyet = parseInt(sens.value, 10);
+                const scale = Math.max(0.8, Math.min(1.6, game.ayarlar.hassasiyet / 100));
+                document.documentElement.style.setProperty('--hitScale', String(scale));
+            });
+        }
+
+        const bat = document.getElementById('set_battery');
+        if (bat) {
+            bat.addEventListener('click', () => {
+                game.ayarlar.pilModu = ayarlarToggle(bat);
+            });
+        }
+
+        function saatGuncelle() {
+            const t = saatMetni();
+            const tabClock = document.getElementById('tab-clock');
+            if (tabClock) tabClock.textContent = t;
+            const uiClock = document.getElementById('ui_clock');
+            if (uiClock) uiClock.textContent = t;
+        }
+
+        function cssVarAyarla(varAdi, urlDegeri) {
+            document.documentElement.style.setProperty(varAdi, `url('${encodeURI(urlDegeri)}')`);
+        }
+
+        function arkaPlanYukleTercihli(varAdi, birincilYol, ikincilYol) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    cssVarAyarla(varAdi, birincilYol);
+                    resolve(true);
+                };
+                img.onerror = () => {
+                    cssVarAyarla(varAdi, ikincilYol);
+                    resolve(false);
+                };
+                img.src = encodeURI(birincilYol);
+            });
+        }
+
+        saatGuncelle();
+        setInterval(saatGuncelle, 1000);
+
+        // Sekme çakışmasını engelle: başlangıçta tek ekran
+        ekranAyarla('war');
+
+        // Arka planları yerli yerine oturt (assets tercih, images fallback)
+        arkaPlanYukleTercihli('--bg-base', 'assets/siginak_arkaplani.png', 'images/OYUN SAVAŞ ARKA PLANI.png');
+        arkaPlanYukleTercihli('--bg-war', 'assets/savas_arkaplani.png', 'images/OYUN SAVAŞ ARKA PLANI.png');
+
+        // İlk ayar uygulamaları
+        if (sens) {
+            const scale = Math.max(0.8, Math.min(1.6, parseInt(sens.value, 10) / 100));
+            document.documentElement.style.setProperty('--hitScale', String(scale));
+        }
+    </script>
+</body>
+</html>

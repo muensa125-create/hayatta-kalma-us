@@ -1,0 +1,26 @@
+LİNK TIKLAMA SORUNU ÇÖZÜMLERİ:
+
+1. KORUMALI DOSYA SORUNU:
+   - index.html dosyasına sağ tıkla
+   - Özellikler → Güvenlik → Engelli dosyaların engelini kaldır
+   - "Evet" deyin
+
+2. DİREKT KOPYALAMA:
+   - index.html dosyasını kopyala (Ctrl+C)
+   - Masaüstüne yapıştır (Ctrl+V)
+   - Yeni kopyalanan dosyaya sağ tıkla
+
+3. TARAYICI TEST:
+   - Chrome'i aç
+   - Adres çubuğuna yaz: file:///C:/Users/muens/OneDrive/Desktop/deneme/deneme/index.html
+   - Enter'a bas
+
+4. ALTERNATİF LİNK:
+   - Başlat → Dosya çalıştır → file:///C:/Users/muens/OneDrive/Desktop/deneme/deneme/index.html
+
+5. EN GARANTİLİ YÖNTEM:
+   - Komut istemini aç (Win+R)
+   - Yazın: chrome "C:\Users\muens\OneDrive\Desktop\deneme\deneme\index.html"
+   - Enter'a bas
+
+NOT: Windows bazen yerel dosyaları engelleyebilir. Yukarıdaki yöntemlerden biri mutlaka çalışır!

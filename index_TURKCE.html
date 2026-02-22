@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Hayatta Kalma Üs Yönetimi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #e0e0e0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 1200px;
+            height: 100vh;
+            max-height: 600px;
+            background: rgba(30, 30, 40, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+        }
+
+        .panel {
+            padding: 15px;
+            border-right: 1px solid rgba(100, 100, 120, 0.3);
+        }
+
+        .panel:last-child {
+            border-right: none;
+        }
+
+        .left-panel {
+            flex: 1;
+            background: rgba(25, 25, 35, 0.8);
+        }
+
+        .center-panel {
+            flex: 2;
+            background: rgba(20, 20, 30, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .right-panel {
+            flex: 1;
+            background: rgba(25, 25, 35, 0.8);
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #4a9eff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-item {
+            background: rgba(40, 40, 50, 0.6);
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 8px;
+            border-left: 3px solid #4a9eff;
+            font-size: 14px;
+        }
+
+        .raid-warning {
+            background: rgba(255, 100, 100, 0.2);
+            border: 2px solid #ff6464;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 10px 0;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        .action-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .target-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .target-button {
+            background: linear-gradient(135deg, #3a3a4a, #2a2a3a);
+            border: 2px solid #4a9eff;
+            color: #ffffff;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .target-button:hover {
+            background: linear-gradient(135deg, #4a9eff, #3a8aef);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 158, 255, 0.3);
+        }
+
+        .target-button:active {
+            transform: translateY(0);
+        }
+
+        .timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4a9eff;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .crosshair {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: crosshair-pulse 1.5s infinite;
+        }
+
+        @keyframes crosshair-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+
+        .base-area {
+            height: 150px;
+            background: rgba(20, 20, 30, 0.6);
+            border-radius: 10px;
+            margin: 10px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .character {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: all 2s ease-in-out;
+        }
+
+        .character.healer { background: #4a9eff; }
+        .character.guard { background: #4aff4a; }
+        .character.worker { background: #888888; }
+        .character.rebel { background: #ff4a4a; }
+
+        .character.injured::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 4px;
+            height: 4px;
+            background: #ff4a4a;
+            border-radius: 50%;
+        }
+
+        .hp-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(40, 40, 50, 0.6);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4a4a, #ff6464);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .control-button {
+            background: rgba(40, 40, 50, 0.6);
+            border: 1px solid #4a9eff;
+            color: #e0e0e0;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px 0;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .control-button:hover {
+            background: rgba(74, 158, 255, 0.2);
+        }
+
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .game-over-content {
+            background: rgba(30, 30, 40, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #4a9eff;
+        }
+
+        .game-over-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #4a9eff;
+        }
+
+        .game-over-text {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #4a9eff, #3a8aef);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .restart-btn:hover {
+            background: linear-gradient(135deg, #5aafff, #4a9eff);
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+                max-height: 100vh;
+                border-radius: 0;
+            }
+
+            .panel {
+                border-right: none;
+                border-bottom: 1px solid rgba(100, 100, 120, 0.3);
+            }
+
+            .panel:last-child {
+                border-bottom: none;
+            }
+
+            .left-panel, .right-panel {
+                flex: 0 0 auto;
+            }
+
+            .center-panel {
+                flex: 1;
+                min-height: 400px;
+            }
+
+            .target-button {
+                min-width: 180px;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+
+            .character {
+                width: 10px;
+                height: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Sol Panel - Üs Durumu -->
+        <div class="panel left-panel">
+            <div class="panel-title">Aktif Üs</div>
+            
+            <div class="status-item">Nüfus: <span id="population">3/50</span></div>
+            <div class="status-item">Muhafızlar: <span id="guards">1</span></div>
+            <div class="status-item">Sıhhiyeciler: <span id="healers">1</span></div>
+            <div class="status-item">İşçiler: <span id="workers">1</span></div>
+            <div class="status-item">İsyancılar: <span id="rebels">0</span></div>
+            
+            <div class="raid-warning">
+                <div>⚠ BASKIN UYARISI ⚠</div>
+                <div id="raid-timer">3 gün sonra baskın</div>
+                <div id="raid-size">10 isyancı saldıracak</div>
+            </div>
+            
+            <div class="base-area" id="base-area">
+                <div class="crosshair"></div>
+            </div>
+        </div>
+
+        <!-- Orta Panel - Aksiyon Alanı -->
+        <div class="panel center-panel">
+            <div class="panel-title">Aksiyon Alanı</div>
+            
+            <div class="action-area">
+                <div class="target-container">
+                    <button class="target-button" onclick="game.vur('head')">
+                        BAŞ<br>
+                        <small>Anında Öldür</small>
+                    </button>
+                    <button class="target-button" onclick="game.vur('chest')">
+                        GÖĞÜS<br>
+                        <small>Ağır Yaralanma</small>
+                    </button>
+                    <button class="target-button" onclick="game.vur('leg')">
+                        BACAK<br>
+                        <small>50/50 Şans</small>
+                    </button>
+                </div>
+                
+                <div class="timer" id="timer">Süre: 3.0</div>
+            </div>
+        </div>
+
+        <!-- Sağ Panel - İstatistikler -->
+        <div class="panel right-panel">
+            <div class="panel-title">İstatistikler & Ayarlar</div>
+            
+            <div class="status-item">HP: <span id="hp">100</span>/100</div>
+            <div class="hp-bar">
+                <div class="hp-fill" id="hp-bar" style="width: 100%"></div>
+            </div>
+            <div class="status-item">Gün: <span id="day">1</span></div>
+            
+            <div class="status-item">Gıda: <span id="food">100</span></div>
+            <div class="status-item">İlaç: <span id="medicine">50</span></div>
+            <div class="status-item">Malzeme: <span id="materials">75</span></div>
+            
+            <button class="control-button" onclick="game.duraklat()">Oyunu Durdur</button>
+            <button class="control-button" onclick="game.restart()">Oyunu Yeniden Başlat</button>
+        </div>
+    </div>
+
+    <script>
+        class HayattaKalmaOyunu {
+            constructor() {
+                this.oyuncuHp = 100;
+                this.mevcutGun = 1;
+                this.baskinaKalanGun = 3;
+                this.sonrakiBaskinBuyuklugu = 10;
+                this.usNufusu = [];
+                this.nufusLimiti = 50;
+                this.kaynaklar = { gida: 100, ilac: 50, malzeme: 75 };
+                this.oyunBitti = false;
+                this.duraklatildi = false;
+                this.kalanSure = 3.0;
+                this.timerInterval = null;
+                
+                this.init();
+            }
+
+            init() {
+                // Başlangıç nüfusu
+                this.karakterEkle('isci', 'sadik');
+                this.karakterEkle('muhafiz', 'sadik');
+                this.karakterEkle('sihhiyeci', 'sadik');
+                
+                this.arayuzuGuncelle();
+                this.aksiyonTimerBaslat();
+                this.karakterleriAnimasyonla();
+            }
+
+            karakterEkle(tip, kisilik) {
+                if (this.usNufusu.length < this.nufusLimiti) {
+                    this.usNufusu.push({
+                        id: Date.now(),
+                        tip: tip,
+                        kisilik: kisilik,
+                        saglik: 100,
+                        yarali: false,
+                        usdeGunu: 0
+                    });
+                }
+            }
+
+            vur(hedef) {
+                if (this.oyunBitti || this.duraklatildi) return;
+                
+                this.aksiyonTimerDurdur();
+                this.gunuIlerle();
+                
+                let sonuc = this.aksiyonIsle(hedef);
+                this.geriBildirimGoster(hedef, sonuc);
+                
+                this.arayuzuGuncelle();
+                this.aksiyonTimerBaslat();
+            }
+
+            aksiyonIsle(hedef) {
+                let sonuc = { basarili: false, nufusDegisimi: 0, alinanHasar: 0 };
+                
+                switch(hedef) {
+                    case 'head':
+                        sonuc.basarili = true;
+                        sonuc.nufusDegisimi = 1;
+                        this.karakterEkle('isci', 'sadik');
+                        break;
+                    case 'chest':
+                        sonuc.basarili = true;
+                        sonuc.nufusDegisimi = 2;
+                        this.karakterEkle('isci', 'sadik');
+                        this.karakterEkle('isyanci', this.rastgeleKisilik());
+                        this.usNufusu[this.usNufusu.length - 1].yarali = true;
+                        break;
+                    case 'leg':
+                        if (Math.random() < 0.5) {
+                            sonuc.basarili = true;
+                            sonuc.nufusDegisimi = 1;
+                            this.karakterEkle('isci', 'guvensiz');
+                        } else {
+                            sonuc.alinanHasar = 15;
+                            this.oyuncuHp -= 15;
+                        }
+                        break;
+                }
+                
+                this.oyunBittiKontrol();
+                return sonuc;
+            }
+
+            rastgeleKisilik() {
+                const kisilikler = ['sadik', 'guvensiz', 'kurnaz'];
+                return kisilikler[Math.floor(Math.random() * kisilikler.length)];
+            }
+
+            gunuIlerle() {
+                if (this.oyunBitti || this.duraklatildi) return;
+                
+                this.mevcutGun++;
+                this.baskinaKalanGun--;
+                
+                // Gün ilerleme
+                this.usNufusu.forEach(karakter => karakter.usdeGunu++);
+                
+                // İhanet kontrolü
+                this.ihanetKontrolu();
+                
+                // Baskın kontrolü
+                if (this.baskinaKalanGun <= 0) {
+                    this.baskinTetikle();
+                    this.baskinaKalanGun = 3 + Math.floor(Math.random() * 3);
+                    this.sonrakiBaskinBuyuklugu = 8 + Math.floor(Math.random() * 8);
+                }
+                
+                // Kaynak tüketimi
+                this.kaynaklariTuket();
+            }
+
+            ihanetKontrolu() {
+                this.usNufusu = this.usNufusu.filter(karakter => {
+                    if (karakter.tip === 'isyanci') {
+                        const sans = this.ihanetSansiHesapla(karakter);
+                        if (Math.random() < sans) {
+                            this.ihanetIsle(karakter);
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+            }
+
+            ihanetSansiHesapla(karakter) {
+                let sans = 0.1;
+                switch(karakter.kisilik) {
+                    case 'guvensiz': sans = 0.3; break;
+                    case 'kurnaz': sans = 0.2; break;
+                    case 'sadik': sans = 0.05; break;
+                }
+                if (karakter.yarali) sans += 0.1;
+                if (karakter.usdeGunu > 7) sans += 0.1;
+                return Math.min(sans, 0.5);
+            }
+
+            ihanetIsle(ihancı) {
+                const index = this.usNufusu.indexOf(ihancı);
+                if (index > -1) this.usNufusu.splice(index, 1);
+                
+                const etki = Math.floor(Math.random() * 3);
+                switch(etki) {
+                    case 0: this.oyuncuHp -= 20; break;
+                    case 1: this.kaynaklar.gida -= 30; break;
+                    case 2: 
+                        if (this.usNufusu.length > 0) {
+                            const kurbanIndex = Math.floor(Math.random() * this.usNufusu.length);
+                            this.usNufusu.splice(kurbanIndex, 1);
+                        }
+                        break;
+                }
+            }
+
+            baskinTetikle() {
+                const muhafizSayisi = this.usNufusu.filter(karakter => karakter.tip === 'muhafiz').length;
+                if (muhafizSayisi < this.sonrakiBaskinBuyuklugu) {
+                    const hasar = this.sonrakiBaskinBuyuklugu - muhafizSayisi;
+                    this.oyuncuHp -= hasar * 5;
+                    
+                    const kayiplar = Math.min(hasar, this.usNufusu.length);
+                    for (let i = 0; i < kayiplar; i++) {
+                        if (this.usNufusu.length > 0) {
+                            const index = Math.floor(Math.random() * this.usNufusu.length);
+                            this.usNufusu.splice(index, 1);
+                        }
+                    }
+                }
+            }
+
+            kaynaklariTuket() {
+                const nufusBuyuklugu = this.usNufusu.length;
+                this.kaynaklar.gida -= nufusBuyuklugu;
+                
+                const yaraliSayisi = this.usNufusu.filter(karakter => karakter.yarali).length;
+                this.kaynaklar.ilac -= yaraliSayisi * 2;
+                
+                this.kaynaklar.gida = Math.max(0, this.kaynaklar.gida);
+                this.kaynaklar.ilac = Math.max(0, this.kaynaklar.ilac);
+                this.kaynaklar.malzeme = Math.max(0, this.kaynaklar.malzeme);
+            }
+
+            oyunBittiKontrol() {
+                if (this.oyuncuHp <= 0 || this.usNufusu.length === 0) {
+                    this.oyunBitti = true;
+                    this.oyunBittiGoster(false);
+                } else if (this.mevcutGun >= 100) {
+                    this.oyunBitti = true;
+                    this.oyunBittiGoster(true);
+                }
+            }
+
+            aksiyonTimerBaslat() {
+                this.kalanSure = 3.0;
+                this.timerInterval = setInterval(() => {
+                    if (!this.duraklatildi && !this.oyunBitti) {
+                        this.kalanSure -= 0.1;
+                        document.getElementById('timer').textContent = `Süre: ${this.kalanSure.toFixed(1)}`;
+                        
+                        if (this.kalanSure <= 0) {
+                            this.aksiyonTimerDurdur();
+                            this.vur('missed');
+                        }
+                    }
+                }, 100);
+            }
+
+            aksiyonTimerDurdur() {
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+            }
+
+            geriBildirimGoster(hedef, sonuc) {
+                const timerElement = document.getElementById('timer');
+                let geriBildirimMetni = '';
+                
+                switch(hedef) {
+                    case 'head':
+                        geriBildirimMetni = sonuc.basarili ? 'Baş vuruşu! Kurban kurtarıldı (+1)' : 'Iskaladın!';
+                        break;
+                    case 'chest':
+                        geriBildirimMetni = sonuc.basarili ? 'Göğüs vuruşu! İkisi de kurtarıldı (+2)' : 'Iskaladın!';
+                        break;
+                    case 'leg':
+                        geriBildirimMetni = sonuc.basarili ? 'Bacak vuruşu! Düşman teslim oldu (+1)' : `Karşı saldırı! -${sonuc.alinanHasar} HP`;
+                        break;
+                }
+                
+                timerElement.textContent = geriBildirimMetni;
+                timerElement.style.color = sonuc.basarili ? '#4aff4a' : '#ff4a4a';
+                
+                setTimeout(() => {
+                    timerElement.style.color = '#4a9eff';
+                }, 2000);
+            }
+
+            arayuzuGuncelle() {
+                // Nüfus istatistikleri
+                const istatistikler = this.nufusIstatistikleri();
+                document.getElementById('population').textContent = `${istatistikler.toplam}/${this.nufusLimiti}`;
+                document.getElementById('guards').textContent = istatistikler.muhafizlar;
+                document.getElementById('healers').textContent = istatistikler.sihhiyeciler;
+                document.getElementById('workers').textContent = istatistikler.isciler;
+                document.getElementById('rebels').textContent = istatistikler.isyancilar;
+                
+                // Oyuncu durumu
+                document.getElementById('hp').textContent = this.oyuncuHp;
+                document.getElementById('hp-bar').style.width = `${this.oyuncuHp}%`;
+                document.getElementById('day').textContent = this.mevcutGun;
+                
+                // Kaynaklar
+                document.getElementById('food').textContent = this.kaynaklar.gida;
+                document.getElementById('medicine').textContent = this.kaynaklar.ilac;
+                document.getElementById('materials').textContent = this.kaynaklar.malzeme;
+                
+                // Baskın uyarısı
+                document.getElementById('raid-timer').textContent = `${this.baskinaKalanGun} gün sonra baskın`;
+                document.getElementById('raid-size').textContent = `${this.sonrakiBaskinBuyuklugu} isyancı saldıracak`;
+                
+                // Karakter animasyonu
+                this.karakterGorunumunuGuncelle();
+            }
+
+            nufusIstatistikleri() {
+                const istatistikler = { toplam: 0, muhafizlar: 0, sihhiyeciler: 0, isciler: 0, isyancilar: 0 };
+                this.usNufusu.forEach(karakter => {
+                    istatistikler.toplam++;
+                    istatistikler[karakter.tip + 'lar']++;
+                });
+                return istatistikler;
+            }
+
+            karakterGorunumunuGuncelle() {
+                const usAlani = document.getElementById('base-area');
+                const mevcutKarakterler = usAlani.querySelectorAll('.character');
+                mevcutKarakterler.forEach(karakter => karakter.remove());
+                
+                this.usNufusu.forEach((karakter, index) => {
+                    const karakterElementi = document.createElement('div');
+                    karakterElementi.className = `character ${karakter.tip}`;
+                    if (karakter.yarali) karakterElementi.classList.add('injured');
+                    
+                    // Rastgele pozisyon
+                    const maxX = usAlani.offsetWidth - 12;
+                    const maxY = usAlani.offsetHeight - 12;
+                    karakterElementi.style.left = `${Math.random() * maxX}px`;
+                    karakterElementi.style.top = `${Math.random() * maxY}px`;
+                    
+                    usAlani.appendChild(karakterElementi);
+                });
+            }
+
+            karakterleriAnimasyonla() {
+                setInterval(() => {
+                    if (!this.duraklatildi && !this.oyunBitti) {
+                        const usAlani = document.getElementById('base-area');
+                        const karakterler = usAlani.querySelectorAll('.character');
+                        
+                        karakterler.forEach(karakter => {
+                            const maxX = usAlani.offsetWidth - 12;
+                            const maxY = usAlani.offsetHeight - 12;
+                            
+                            const hedefX = Math.random() * maxX;
+                            const hedefY = Math.random() * maxY;
+                            
+                            karakter.style.transition = 'all 2s ease-in-out';
+                            karakter.style.left = `${hedefX}px`;
+                            karakter.style.top = `${hedefY}px`;
+                        });
+                    }
+                }, 3000);
+            }
+
+            oyunBittiGoster(kazandi) {
+                const oyunBittiDiv = document.createElement('div');
+                oyunBittiDiv.className = 'game-over';
+                oyunBittiDiv.innerHTML = `
+                    <div class="game-over-content">
+                        <div class="game-over-title">${kazandi ? 'ZAFER!' : 'OYUN BİTTİ'}</div>
+                        <div class="game-over-text">${kazandi ? '100 gün hayatta kaldın!' : 'Hayatta kalamadın...'}</div>
+                        <button class="restart-btn" onclick="game.restart()">Tekrar Oyna</button>
+                    </div>
+                `;
+                document.body.appendChild(oyunBittiDiv);
+            }
+
+            duraklat() {
+                this.duraklatildi = !this.duraklatildi;
+                document.querySelector('.control-button').textContent = this.duraklatildi ? 'Oyuna Devam Et' : 'Oyunu Durdur';
+            }
+
+            restart() {
+                this.oyuncuHp = 100;
+                this.mevcutGun = 1;
+                this.baskinaKalanGun = 3;
+                this.sonrakiBaskinBuyuklugu = 10;
+                this.usNufusu = [];
+                this.kaynaklar = { gida: 100, ilac: 50, malzeme: 75 };
+                this.oyunBitti = false;
+                this.duraklatildi = false;
+                
+                // Game over ekranını kaldır
+                const oyunBittiDiv = document.querySelector('.game-over');
+                if (oyunBittiDiv) oyunBittiDiv.remove();
+                
+                this.init();
+            }
+        }
+
+        // Oyunu başlat
+        const game = new HayattaKalmaOyunu();
+
+        // Klavye kontrolleri
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case '1':
+                case 'w':
+                case 'W':
+                case 'ArrowUp':
+                    game.vur('head');
+                    break;
+                case '2':
+                case 's':
+                case 'S':
+                case 'ArrowDown':
+                    game.vur('chest');
+                    break;
+                case '3':
+                case 'a':
+                case 'A':
+                case 'ArrowLeft':
+                    game.vur('leg');
+                    break;
+                case ' ':
+                    game.duraklat();
+                    break;
+                case 'r':
+                case 'R':
+                    game.restart();
+                    break;
+            }
+        });
+
+        // Touch kontrolleri için
+        let touchBaslangicY = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchBaslangicY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            const touchBitisY = e.changedTouches[0].clientY;
+            const deltaY = touchBaslangicY - touchBitisY;
+            
+            if (Math.abs(deltaY) > 50) {
+                if (deltaY > 0) {
+                    game.vur('head'); // Yukarı kaydır
+                } else {
+                    game.vur('leg'); // Aşağı kaydır
+                }
+            } else {
+                game.vur('chest'); // Tek dokunuş
+            }
+        });
+    </script>
+</body>
+</html>

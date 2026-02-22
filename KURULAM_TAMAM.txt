@@ -1,0 +1,23 @@
+✅ YENİ PROJEYE OYUN KURULDU!
+
+📁 DOSYALAR OLUŞTURULDU:
+- GameManager.gd (Oyun mantığı)
+- MainUI.tscn (Ana sahne)
+- MainUI.gd (Arayüz kontrolü)
+- project.godot (Proje ayarları)
+
+🎯 GODOT'DA ÇALIŞTIRMA:
+1. Godot'yu aç
+2. File → Open Project
+3. "deneme" klasörünü seç
+4. MainUI.tscn aç
+5. F6 bas
+
+🎮 OYUN KONTROLLERİ:
+- Head: 1, W, Yukarı ok
+- Chest: 2, S, Aşağı ok
+- Leg: 3, A, Sol ok
+- Mouse: Hedeflere tıkla
+
+🚀 OYUN HAZIR!
+GameManager AutoLoad olarak ayarlı, tüm mekanikler çalışır durumda.
