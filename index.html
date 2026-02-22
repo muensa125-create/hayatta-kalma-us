@@ -1143,9 +1143,9 @@
                 const oyunBittiDiv = document.querySelector('.game-over');
                 if (oyunBittiDiv) oyunBittiDiv.remove();
 
-                // Base sahnesini temizle
-                const sahne = document.getElementById('base-stage');
-                if (sahne) sahne.innerHTML = '';
+                // Sadece walker'ları temizle, katman yapısını koru
+                const katman = document.getElementById('stage-characters');
+                if (katman) katman.innerHTML = '';
 
                 this.init();
             }
