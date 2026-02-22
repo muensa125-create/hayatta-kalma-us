@@ -1229,11 +1229,11 @@
                 const h = katman.clientHeight || 240;
 
                 if (tip === 'isci') {
-                    // Sol alt köşede topla
+                    // Sol orta-alt, aralık yarıya indirildi
                     const col = index % 5;
                     const row = Math.floor(index / 5);
-                    left = 5 + col * 8;
-                    top = 65 + row * 8;
+                    left = 5 + col * 4;
+                    top = 55 + row * 4;
                 } else if (tip === 'muhafiz') {
                     // Alt orta, yan yana sıra (boşluk azaltıldı)
                     const col = index % 6;
