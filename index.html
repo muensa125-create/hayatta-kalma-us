@@ -759,14 +759,19 @@
                 // Düşman etkisiz hale geldiyse yan karakterler üsse gelsin
                 if (sonuc.basarili) {
                     this.yanKarakterler.forEach(k => this.karakterEkle(k.tip, k.kisilik));
-                    this.yeniKarsilasmaOlustur();
+                    // Yan karakterleri hemen temizle (üsse gittiler)
+                    const alan = document.getElementById('side-characters');
+                    if (alan) alan.innerHTML = '';
                 }
                 
                 this.arayuzuGuncelle();
                 
-                // 1 saniye sonra karakteri normale döndür ve yeni hedef oluştur
+                // 1 saniye sonra karakteri normale döndür ve yeni karşılaşma kur
                 setTimeout(() => {
                     this.karakteriNormaleDondur();
+                    if (sonuc.basarili) {
+                        this.yeniKarsilasmaOlustur();
+                    }
                     this.aksiyonTimerBaslat(true);
                 }, 1000);
             }
