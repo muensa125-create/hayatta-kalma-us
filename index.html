@@ -1286,7 +1286,11 @@
                 // Mevcut nüfusu sahneye yansıt
                 const katman = document.getElementById('stage-characters');
                 if (!katman) return;
+
+                // Oyuncu karakterini koru, diğerlerini temizle
+                const oyuncuKarakteri = document.getElementById('player-character');
                 katman.innerHTML = '';
+                if (oyuncuKarakteri) katman.appendChild(oyuncuKarakteri);
 
                 // Tiplere göre indeks sayacı
                 const tipIndeksleri = { isci: 0, muhafiz: 0, sihhiyeci: 0, isyanci: 0 };
@@ -1325,12 +1329,18 @@
             }
 
             oyuncuKarakteriBaslat() {
+                console.log('Oyuncu karakteri başlatılıyor...');
                 const karakter = document.getElementById('player-character');
-                if (!karakter) return;
+                if (!karakter) {
+                    console.error('player-character div bulunamadı!');
+                    return;
+                }
+                console.log('Karakter div bulundu:', karakter);
 
                 // Başlangıç pozisyonu ve yön
                 this.oyuncuKarakteriGuncelle();
                 this.oyuncuHareketiniBaslat();
+                console.log('Oyuncu karakteri başarıyla başlatıldı');
             }
 
             oyuncuKarakteriGuncelle() {
