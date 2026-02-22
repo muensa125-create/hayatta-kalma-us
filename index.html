@@ -283,18 +283,7 @@
         .walker.sihhiyeci { background-image: url('images/doktor (1).png'); }
         .walker.isyanci   { background-image: url('images/isyancı.png'); }
 
-        /* Kare devriye yolu animasyonu */
-        @keyframes patrolPath {
-            0%   { left: 10%; top: 80%; }
-            25%  { left: 10%; top: 20%; }
-            50%  { left: 90%; top: 20%; }
-            75%  { left: 90%; top: 80%; }
-            100% { left: 10%; top: 80%; }
-        }
-        .walker-path-outer {
-            animation: patrolPath linear infinite;
-        }
-
+        
         .base-info-bar {
             flex: 0 0 auto;
             display: grid;
@@ -1226,18 +1215,45 @@
                 // Artık base-stage walker sistemi kullanıyor, bu fonksiyon boş kalabilir
             }
 
-            walkerEkle(tip) {
+            walkerEkle(tip, index = -1) {
                 if (this.ayarlar.pilModu) return;
                 const katman = document.getElementById('stage-characters');
                 if (!katman) return;
 
                 const walker = document.createElement('div');
-                walker.className = `walker walker-path-outer ${tip}`;
+                walker.className = `walker ${tip}`;
 
-                // Her walker farklı hızda ve farklı fazda başlasın
-                const sure = 16 + Math.random() * 14; // 16-30 saniye
-                walker.style.animationDuration = `${sure}s`;
-                walker.style.animationDelay = `${-(Math.random() * sure)}s`;
+                // Pozisyon belirle
+                let left, top;
+                const w = katman.clientWidth || 360;
+                const h = katman.clientHeight || 240;
+
+                if (tip === 'isci') {
+                    // Sol üst köşede topla
+                    const col = index % 5;
+                    const row = Math.floor(index / 5);
+                    left = 5 + col * 8;
+                    top = 5 + row * 8;
+                } else if (tip === 'muhafiz') {
+                    // Alt orta, yan yana sıra
+                    const col = index % 6;
+                    left = 20 + col * 10;
+                    top = 75;
+                } else if (tip === 'sihhiyeci') {
+                    // Sağ üst köşede topla
+                    const col = index % 4;
+                    const row = Math.floor(index / 4);
+                    left = 70 + col * 7;
+                    top = 5 + row * 7;
+                } else {
+                    // Diğerleri rastgele (isyancı vb.)
+                    left = 10 + Math.random() * 80;
+                    top = 10 + Math.random() * 80;
+                }
+
+                walker.style.left = `${left}%`;
+                walker.style.top = `${top}%`;
+                walker.style.transform = 'translate(-50%, -50%)';
 
                 katman.appendChild(walker);
             }
@@ -1248,7 +1264,14 @@
                 if (!katman) return;
                 katman.innerHTML = '';
 
-                this.usNufusu.forEach(k => this.walkerEkle(k.tip));
+                // Tiplere göre indeks sayacı
+                const tipIndeksleri = { isci: 0, muhafiz: 0, sihhiyeci: 0, isyanci: 0 };
+
+                this.usNufusu.forEach(k => {
+                    const idx = tipIndeksleri[k.tip] || 0;
+                    this.walkerEkle(k.tip, idx);
+                    tipIndeksleri[k.tip] = idx + 1;
+                });
 
                 // Nüfus değişimlerini periyodik olarak senkronize et
                 setInterval(() => {
@@ -1258,8 +1281,15 @@
                     const mevcutSayi = katman.querySelectorAll('.walker').length;
                     const hedefSayi = this.usNufusu.length;
                     if (mevcutSayi < hedefSayi) {
+                        // Yeni eklenenleri doğru indeksle ekle
+                        const mevcutTipler = Array.from(katman.querySelectorAll('.walker')).map(w => w.className.split(' ')[1]);
+                        const tipIndeksleri = { isci: 0, muhafiz: 0, sihhiyeci: 0, isyanci: 0 };
+                        mevcutTipler.forEach(t => { if (t) tipIndeksleri[t]++; });
                         for (let i = mevcutSayi; i < hedefSayi; i++) {
-                            this.walkerEkle(this.usNufusu[i].tip);
+                            const tip = this.usNufusu[i].tip;
+                            const idx = tipIndeksleri[tip] || 0;
+                            this.walkerEkle(tip, idx);
+                            tipIndeksleri[tip] = idx + 1;
                         }
                     } else if (mevcutSayi > hedefSayi) {
                         const walkers = katman.querySelectorAll('.walker');
