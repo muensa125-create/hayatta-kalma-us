@@ -684,7 +684,7 @@
     </div><!-- /game-container -->
 
     <!-- Sürüm numarası -->
-    <div class="version-number">v1.1.5</div>
+    <div class="version-number">v1.1.6</div>
 
     <script>
         class HayattaKalmaOyunu {
@@ -847,12 +847,12 @@
                 this.yanKarakterHasarVer();
 
                 if (dusmanOldu) {
-                    // 600ms bekle ki hasar görseli görünsün, sonra temizle
+                    // Düşmanla aynı anda kaybolsun (1000ms)
                     setTimeout(() => {
                         this.yanKarakterler.forEach(k => this.karakterEkle(k.tip, k.kisilik));
                         const alan = document.getElementById('side-characters');
                         if (alan) alan.innerHTML = '';
-                    }, 600);
+                    }, 1000);
                 }
 
                 this.arayuzuGuncelle();
