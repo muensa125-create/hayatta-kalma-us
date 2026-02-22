@@ -684,7 +684,7 @@
     </div><!-- /game-container -->
 
     <!-- Sürüm numarası -->
-    <div class="version-number">v1.1.1</div>
+    <div class="version-number">v1.1.2</div>
 
     <script>
         class HayattaKalmaOyunu {
@@ -759,8 +759,20 @@
                 ];
 
                 this.yanKarakterler.forEach((k, i) => {
-                    const el = document.createElement('div');
-                    el.className = `base-character ${k.tip}`;
+                    const el = document.createElement('img');
+                    el.id = `yan-karakter-${i}`;
+                    el.dataset.tip = k.tip;
+                    el.dataset.idx = i;
+
+                    // Normal görsel
+                    const normalGorseller = {
+                        isci: 'images/işci.png',
+                        muhafiz: 'images/muhafız.png',
+                        sihhiyeci: 'images/doktor (1).png',
+                        isyanci: 'images/isyancı.png'
+                    };
+                    el.src = normalGorseller[k.tip] || 'images/işci.png';
+                    el.style.cssText = 'position:absolute;width:38px;height:55px;object-fit:contain;';
 
                     const slot = slots[i % slots.length];
                     const x = (slot.x / 100) * w;
@@ -839,6 +851,9 @@
                     if (alan) alan.innerHTML = '';
                 }
 
+                // Rastgele yan karaktere hasar ver
+                this.yanKarakterHasarVer();
+
                 this.arayuzuGuncelle();
 
                 setTimeout(() => {
@@ -864,6 +879,61 @@
                         character.classList.add('leg-shot');
                         break;
                 }
+            }
+
+            yanKarakterHasarVer() {
+                if (!this.yanKarakterler.length) return;
+                // %40 ihtimalle bir yan karaktere isabet
+                if (Math.random() > 0.4) return;
+
+                const idx = Math.floor(Math.random() * this.yanKarakterler.length);
+                const k = this.yanKarakterler[idx];
+                const el = document.getElementById(`yan-karakter-${idx}`);
+                if (!el) return;
+
+                const bolumler = ['kafa', 'gogus', 'ayak'];
+                const bolum = bolumler[Math.floor(Math.random() * bolumler.length)];
+
+                const hasarGorseller = {
+                    isci: {
+                        kafa:  'images/kafasından vurulan işci.png',
+                        gogus: 'images/göğsünden vurulan işci.png',
+                        ayak:  'images/ayaktan vurulan işci.png'
+                    },
+                    muhafiz: {
+                        kafa:  'images/kafasından vurulan muhafız (1).png',
+                        gogus: 'images/göğsünden vurulan muhafız (2).png',
+                        ayak:  'images/ayaktan vurulan muhafız.png'
+                    },
+                    sihhiyeci: {
+                        kafa:  'images/kafasından vurulan doktor.png',
+                        gogus: 'images/göğsünden vurulan doktor.png',
+                        ayak:  'images/ayaktan vurulan doktor.png'
+                    },
+                    isyanci: {
+                        kafa:  'images/kafasından vurulan isyancı.png',
+                        gogus: 'images/göğsünden vurulan düşman.png',
+                        ayak:  'images/ayaktan vurulan düşman.png'
+                    }
+                };
+
+                const tip = k.tip;
+                const gorsel = hasarGorseller[tip]?.[bolum];
+                if (!gorsel) return;
+
+                const normalGorseller = {
+                    isci: 'images/işci.png',
+                    muhafiz: 'images/muhafız.png',
+                    sihhiyeci: 'images/doktor (1).png',
+                    isyanci: 'images/isyancı.png'
+                };
+
+                // Hasar görselini göster, 800ms sonra normale dön
+                el.src = gorsel;
+                setTimeout(() => {
+                    const elSonra = document.getElementById(`yan-karakter-${idx}`);
+                    if (elSonra) elSonra.src = normalGorseller[tip] || 'images/işci.png';
+                }, 800);
             }
 
             karakteriNormaleDondur() {
