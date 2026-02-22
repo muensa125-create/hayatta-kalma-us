@@ -293,10 +293,9 @@
             background-position: center;
             z-index: 10;
             transition: left 0.2s ease, top 0.2s ease;
-            border: 2px solid red; /* DEBUG - Görünür olup olmadığını test et */
         }
-        .player-character.up    { background-image: url('images/sağ.png'); }
-        .player-character.down  { background-image: url('images/sağ.png'); }
+        .player-character.up    { background-image: url('images/arka (2).png'); } /* arka */
+        .player-character.down  { background-image: url('images/arka (1).png'); } /* ön */
         .player-character.left  { background-image: url('images/sol.png'); }
         .player-character.right { background-image: url('images/sağ.png'); }
 
@@ -1329,18 +1328,12 @@
             }
 
             oyuncuKarakteriBaslat() {
-                console.log('Oyuncu karakteri başlatılıyor...');
                 const karakter = document.getElementById('player-character');
-                if (!karakter) {
-                    console.error('player-character div bulunamadı!');
-                    return;
-                }
-                console.log('Karakter div bulundu:', karakter);
+                if (!karakter) return;
 
                 // Başlangıç pozisyonu ve yön
                 this.oyuncuKarakteriGuncelle();
                 this.oyuncuHareketiniBaslat();
-                console.log('Oyuncu karakteri başarıyla başlatıldı');
             }
 
             oyuncuKarakteriGuncelle() {
