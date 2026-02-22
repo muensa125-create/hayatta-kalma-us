@@ -329,6 +329,72 @@
             animation: pulse 2s infinite;
         }
 
+        /* ── BASKIN RAPORU MODAL ─────────────── */
+        #raid-report {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.82);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .raid-report-box {
+            background: #1a1e26;
+            border: 1px solid var(--danger);
+            border-radius: 10px;
+            padding: 20px 24px;
+            width: min(340px, 90vw);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .raid-report-title {
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-align: center;
+            color: var(--danger);
+            text-transform: uppercase;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(192,57,43,0.3);
+        }
+        .raid-report-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text);
+        }
+        .raid-report-section {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-top: 4px;
+        }
+        .raid-report-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .raid-report-btn {
+            margin-top: 8px;
+            background: var(--danger);
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 10px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        .raid-report-btn:hover { opacity: 0.85; }
+
         .hp-strip {
             flex: 0 0 5px;
             background: rgba(0,0,0,0.4);
@@ -620,8 +686,8 @@
             constructor() {
                 this.oyuncuHp = 100;
                 this.mevcutGun = 1;
-                this.baskinaKalanGun = 3;
-                this.sonrakiBaskinBuyuklugu = 10;
+                this.baskinaKalanGun = 20;
+                this.sonrakiBaskinBuyuklugu = 15;
                 this.usNufusu = [];
                 this.nufusLimiti = 50;
                 this.kaynaklar = { gida: 100, ilac: 50, malzeme: 75 };
@@ -873,11 +939,12 @@
                     // İhanet kontrolü
                     this.ihanetKontrolu();
                     
-                    // Baskın kontrolü
+                    // Baskın kontrolü: ilk baskın 20. günde, sonrası rastgele
                     if (this.baskinaKalanGun <= 0) {
+                        this.aksiyonTimerDurdur();
                         this.baskinTetikle();
-                        this.baskinaKalanGun = 3 + Math.floor(Math.random() * 3);
-                        this.sonrakiBaskinBuyuklugu = 8 + Math.floor(Math.random() * 8);
+                        this.baskinaKalanGun = 15 + Math.floor(Math.random() * 10);
+                        this.sonrakiBaskinBuyuklugu = 10 + Math.floor(Math.random() * 10);
                     }
                 }
                 
@@ -928,19 +995,100 @@
             }
 
             baskinTetikle() {
-                const muhafizSayisi = this.usNufusu.filter(karakter => karakter.tip === 'muhafiz').length;
-                if (muhafizSayisi < this.sonrakiBaskinBuyuklugu) {
-                    const hasar = this.sonrakiBaskinBuyuklugu - muhafizSayisi;
-                    this.oyuncuHp -= hasar * 5;
-                    
-                    const kayiplar = Math.min(hasar, this.usNufusu.length);
-                    for (let i = 0; i < kayiplar; i++) {
-                        if (this.usNufusu.length > 0) {
-                            const index = Math.floor(Math.random() * this.usNufusu.length);
-                            this.usNufusu.splice(index, 1);
-                        }
-                    }
+                const dusmanGucu = this.sonrakiBaskinBuyuklugu; // örn: 15
+
+                // Bizim gücümüzü hesapla
+                let bizimGucumuz = 0;
+                this.usNufusu.forEach(k => {
+                    if (k.tip === 'muhafiz')   bizimGucumuz += 3;
+                    else if (k.tip === 'isyanci') bizimGucumuz += 2;
+                    else if (k.tip === 'isci')    bizimGucumuz += 1;
+                    else if (k.tip === 'sihhiyeci') bizimGucumuz += 1;
+                });
+
+                // Güç farkına göre kayıp oranı
+                const gucFarki = dusmanGucu - bizimGucumuz;
+                let olumOrani, yaraliOrani;
+
+                if (gucFarki <= 0) {
+                    // Biz kazandık
+                    olumOrani   = 0.05;
+                    yaraliOrani = 0.15;
+                } else if (gucFarki <= 5) {
+                    olumOrani   = 0.15;
+                    yaraliOrani = 0.25;
+                } else if (gucFarki <= 10) {
+                    olumOrani   = 0.30;
+                    yaraliOrani = 0.30;
+                } else {
+                    olumOrani   = 0.50;
+                    yaraliOrani = 0.25;
                 }
+
+                // Kayıpları uygula
+                const olduler = [];
+                const yaralilar = [];
+                const sagKalanlar = [];
+
+                this.usNufusu.forEach(k => {
+                    const r = Math.random();
+                    if (r < olumOrani) {
+                        olduler.push(k);
+                    } else if (r < olumOrani + yaraliOrani) {
+                        k.yarali = true;
+                        yaralilar.push(k);
+                        sagKalanlar.push(k);
+                    } else {
+                        sagKalanlar.push(k);
+                    }
+                });
+
+                // Ölüleri üsten sil
+                this.usNufusu = sagKalanlar;
+
+                // Oyuncu HP'sine de etki
+                if (gucFarki > 0) this.oyuncuHp -= Math.min(gucFarki * 3, 40);
+                this.oyuncuHp = Math.max(0, this.oyuncuHp);
+
+                // Baskın raporunu göster
+                this.baskinRaporuGoster(dusmanGucu, bizimGucumuz, olduler, yaralilar);
+            }
+
+            baskinRaporuGoster(dusmanGucu, bizimGucumuz, olduler, yaralilar) {
+                // Eski raporu kaldır
+                const eskiRapor = document.getElementById('raid-report');
+                if (eskiRapor) eskiRapor.remove();
+
+                const kazandik = bizimGucumuz >= dusmanGucu;
+                const tipAdi = { muhafiz: 'Muhafız', isci: 'İşçi', sihhiyeci: 'Sıhhiyeci', isyanci: 'İsyancı' };
+
+                const olduListesi = olduler.length === 0
+                    ? '<span style="color:#4aff4a">Kayıp yok</span>'
+                    : olduler.map(k => `<span style="color:#ff4a4a">✕ ${tipAdi[k.tip] || k.tip}</span>`).join('');
+
+                const yaraliListesi = yaralilar.length === 0
+                    ? '<span style="color:#4aff4a">Yaralı yok</span>'
+                    : yaralilar.map(k => `<span style="color:#f39c12">⚠ ${tipAdi[k.tip] || k.tip}</span>`).join('');
+
+                const rapor = document.createElement('div');
+                rapor.id = 'raid-report';
+                rapor.innerHTML = `
+                    <div class="raid-report-box">
+                        <div class="raid-report-title">${kazandik ? '⚔ BASKIN SAVUŞTURULDU' : '💀 BASKIN BAŞARISIZ'}</div>
+                        <div class="raid-report-row">
+                            <span>Düşman Gücü</span><span>${dusmanGucu}</span>
+                        </div>
+                        <div class="raid-report-row">
+                            <span>Bizim Gücümüz</span><span>${bizimGucumuz}</span>
+                        </div>
+                        <div class="raid-report-section">Ölüler (${olduler.length})</div>
+                        <div class="raid-report-list">${olduListesi}</div>
+                        <div class="raid-report-section">Yaralılar (${yaralilar.length})</div>
+                        <div class="raid-report-list">${yaraliListesi}</div>
+                        <button class="raid-report-btn" onclick="document.getElementById('raid-report').remove()">Tamam</button>
+                    </div>
+                `;
+                document.body.appendChild(rapor);
             }
 
             kaynaklariTuket() {
