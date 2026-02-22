@@ -589,9 +589,8 @@
                 <!-- Animasyonlu sahne -->
                 <div id="base-stage">
                     <div class="stage-ground"></div>
-                    <div class="stage-characters" id="stage-characters">
-                        <div id="player-character" class="player-character"></div>
-                    </div>
+                    <div class="stage-characters" id="stage-characters"></div>
+                    <div id="player-character" class="player-character"></div>
                     <div class="stage-overlay" style="pointer-events:none;"></div>
                 </div>
 
@@ -1285,11 +1284,7 @@
                 // Mevcut nüfusu sahneye yansıt
                 const katman = document.getElementById('stage-characters');
                 if (!katman) return;
-
-                // Oyuncu karakterini koru, diğerlerini temizle
-                const oyuncuKarakteri = document.getElementById('player-character');
                 katman.innerHTML = '';
-                if (oyuncuKarakteri) katman.appendChild(oyuncuKarakteri);
 
                 // Tiplere göre indeks sayacı
                 const tipIndeksleri = { isci: 0, muhafiz: 0, sihhiyeci: 0, isyanci: 0 };
