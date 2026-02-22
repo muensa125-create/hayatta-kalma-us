@@ -1229,22 +1229,20 @@
                 const h = katman.clientHeight || 240;
 
                 if (tip === 'isci') {
-                    // Sol üst köşede topla
+                    // Sol alt köşede topla
                     const col = index % 5;
                     const row = Math.floor(index / 5);
                     left = 5 + col * 8;
-                    top = 5 + row * 8;
+                    top = 65 + row * 8;
                 } else if (tip === 'muhafiz') {
-                    // Alt orta, yan yana sıra
+                    // Alt orta, yan yana sıra (boşluk azaltıldı)
                     const col = index % 6;
-                    left = 20 + col * 10;
+                    left = 20 + col * 6;
                     top = 75;
                 } else if (tip === 'sihhiyeci') {
-                    // Sağ üst köşede topla
-                    const col = index % 4;
-                    const row = Math.floor(index / 4);
-                    left = 70 + col * 7;
-                    top = 5 + row * 7;
+                    // Rastgele pozisyon
+                    left = 10 + Math.random() * 80;
+                    top = 10 + Math.random() * 80;
                 } else {
                     // Diğerleri rastgele (isyancı vb.)
                     left = 10 + Math.random() * 80;
