@@ -756,8 +756,10 @@
                 const olaylariCalistir = !(hedef === 'head' || hedef === 'chest');
                 this.gunuIlerle(olaylariCalistir);
 
-                // Düşman etkisiz hale geldiyse yan karakterler üsse gelsin
-                if (sonuc.basarili) {
+                // Düşman gerçekten etkisiz mi? (baş/göğüs = kesin ölüm, bacak = %50)
+                const dusmanOldu = sonuc.basarili && (hedef === 'head' || hedef === 'chest' || hedef === 'leg');
+
+                if (dusmanOldu) {
                     this.yanKarakterler.forEach(k => this.karakterEkle(k.tip, k.kisilik));
                     // Yan karakterleri hemen temizle (üsse gittiler)
                     const alan = document.getElementById('side-characters');
@@ -766,10 +768,11 @@
                 
                 this.arayuzuGuncelle();
                 
-                // 1 saniye sonra karakteri normale döndür ve yeni karşılaşma kur
+                // 1 saniye sonra karakteri normale döndür
+                // Düşman öldüyse yeni karşılaşma kur, öldürülmediyse (ıskalama/karşı saldırı) aynı düşman kalsın
                 setTimeout(() => {
                     this.karakteriNormaleDondur();
-                    if (sonuc.basarili) {
+                    if (dusmanOldu) {
                         this.yeniKarsilasmaOlustur();
                     }
                     this.aksiyonTimerBaslat(true);
