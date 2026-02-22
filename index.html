@@ -1338,10 +1338,7 @@
             }
 
             oyuncuKarakteriBaslat() {
-                const karakter = document.getElementById('player-character');
-                if (!karakter) return;
-
-                // Başlangıç pozisyonu ve yön
+                // İlk render - ekrandan bağımsız
                 this.oyuncuKarakteriGuncelle();
                 this.oyuncuHareketiniBaslat();
             }
@@ -1350,19 +1347,32 @@
                 const karakter = document.getElementById('player-character');
                 if (!karakter) return;
 
+                karakter.style.position = 'absolute';
                 karakter.style.left = `${this.oyuncuKarakter.x}%`;
                 karakter.style.top = `${this.oyuncuKarakter.y}%`;
                 karakter.style.transform = 'translate(-50%, -50%)';
+                karakter.style.width = '48px';
+                karakter.style.height = '48px';
+                karakter.style.backgroundSize = 'contain';
+                karakter.style.backgroundRepeat = 'no-repeat';
+                karakter.style.backgroundPosition = 'center';
+                karakter.style.zIndex = '10';
 
-                // Yöne göre sınıf değiştir
-                karakter.className = `player-character ${this.oyuncuKarakter.yon}`;
+                // Yöne göre resim inline set et (CSS sınıfına güvenmeden)
+                const resimler = {
+                    up:    "url('images/arka (1).png')",
+                    down:  "url('images/arka (2).png')",
+                    left:  "url('images/sol.png')",
+                    right: "url('images/sa\u011f.png')"
+                };
+                karakter.style.backgroundImage = resimler[this.oyuncuKarakter.yon] || resimler.down;
             }
 
             oyuncuHareketiniBaslat() {
                 // Rastgele hareket sistemi
                 setInterval(() => {
                     if (this.oyunBitti || this.duraklatildi) return;
-                    if (window.uiDurum?.aktifEkran !== 'base') return;
+                    // Hareket sadece base ekranında ama render her zaman
 
                     // Rastgele yön seç (çapraz yok)
                     const yonler = ['up', 'down', 'left', 'right'];
