@@ -400,6 +400,18 @@
         }
         .raid-report-btn:hover { opacity: 0.85; }
 
+        .version-number {
+            position: fixed;
+            bottom: 8px;
+            right: 8px;
+            font-size: 10px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 1px;
+            z-index: 999;
+            pointer-events: none;
+        }
+
         .hp-strip {
             flex: 0 0 5px;
             background: rgba(0,0,0,0.4);
@@ -686,6 +698,9 @@
         </div>
 
     </div><!-- /game-container -->
+
+    <!-- Sürüm numarası -->
+    <div class="version-number">v1.0.1</div>
 
     <script>
         class HayattaKalmaOyunu {
