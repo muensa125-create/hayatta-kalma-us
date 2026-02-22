@@ -684,7 +684,7 @@
     </div><!-- /game-container -->
 
     <!-- Sürüm numarası -->
-    <div class="version-number">v1.1.9</div>
+    <div class="version-number">v1.2.0</div>
 
     <script>
         class HayattaKalmaOyunu {
@@ -1128,14 +1128,44 @@
                 this.oyuncuHp = Math.max(0, this.oyuncuHp);
 
                 if (gucFarki > 0) {
-                    // Düşman kazandı — oyun bitti
+                    // Düşman kazandı — baskın yenilgi ekranı
                     this.oyunBitti = true;
                     this.aksiyonTimerDurdur();
-                    setTimeout(() => this.oyunBittiGoster(false), 500);
+                    setTimeout(() => this.baskinYenilgiGoster(), 500);
                 } else {
                     // Biz kazandık — raporu göster
                     this.baskinRaporuGoster(dusmanGucu, bizimGucumuz, olduler, yaralilar);
                 }
+            }
+
+            baskinYenilgiGoster() {
+                const eskiEkran = document.getElementById('baskin-yenilgi');
+                if (eskiEkran) eskiEkran.remove();
+
+                const ekran = document.createElement('div');
+                ekran.id = 'baskin-yenilgi';
+                ekran.style.cssText = `
+                    position:fixed;top:0;left:0;width:100%;height:100%;
+                    background:rgba(0,0,0,0.92);
+                    display:flex;flex-direction:column;
+                    align-items:center;justify-content:center;
+                    z-index:9999;color:#d5d8dc;text-align:center;padding:30px;
+                `;
+                ekran.innerHTML = `
+                    <div style="font-size:36px;margin-bottom:16px;">💀</div>
+                    <div style="font-size:20px;font-weight:700;color:#c0392b;letter-spacing:2px;margin-bottom:20px;">BASKIN</div>
+                    <div style="font-size:14px;line-height:1.8;max-width:300px;color:#aaa;margin-bottom:30px;">
+                        Düşmanlar üsse bastı.<br>
+                        Sen ve tüm arkadaşların<br>
+                        hayatını kaybetti.
+                    </div>
+                    <button onclick="game.restart()" style="
+                        background:#c0392b;border:none;color:#fff;
+                        padding:12px 28px;font-size:14px;font-weight:700;
+                        letter-spacing:1px;cursor:pointer;border-radius:4px;
+                    ">BAŞTAN BAŞLA</button>
+                `;
+                document.body.appendChild(ekran);
             }
 
             baskinRaporuGoster(dusmanGucu, bizimGucumuz, olduler, yaralilar) {
@@ -1469,6 +1499,8 @@
 
                 const oyunBittiDiv = document.querySelector('.game-over');
                 if (oyunBittiDiv) oyunBittiDiv.remove();
+                const yenilgiDiv = document.getElementById('baskin-yenilgi');
+                if (yenilgiDiv) yenilgiDiv.remove();
 
                 // Sadece walker'ları temizle, katman yapısını koru
                 const katman = document.getElementById('stage-characters');
