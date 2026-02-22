@@ -684,7 +684,7 @@
     </div><!-- /game-container -->
 
     <!-- Sürüm numarası -->
-    <div class="version-number">v1.1.3</div>
+    <div class="version-number">v1.1.4</div>
 
     <script>
         class HayattaKalmaOyunu {
@@ -843,14 +843,17 @@
                 // missed veya başarısız bacak = düşman hayatta, yeni karşılaşma kur ama üsse kimse gitmiyor
                 const dusmanOldu = sonuc.basarili && (hedef === 'head' || hedef === 'chest' || hedef === 'leg');
 
-                if (dusmanOldu) {
-                    this.yanKarakterler.forEach(k => this.karakterEkle(k.tip, k.kisilik));
-                    const alan = document.getElementById('side-characters');
-                    if (alan) alan.innerHTML = '';
-                }
-
-                // Rastgele yan karaktere hasar ver
+                // Her vuruşta rastgele yan karaktere hasar ver (temizlemeden önce)
                 this.yanKarakterHasarVer();
+
+                if (dusmanOldu) {
+                    // 600ms bekle ki hasar görseli görünsün, sonra temizle
+                    setTimeout(() => {
+                        this.yanKarakterler.forEach(k => this.karakterEkle(k.tip, k.kisilik));
+                        const alan = document.getElementById('side-characters');
+                        if (alan) alan.innerHTML = '';
+                    }, 600);
+                }
 
                 this.arayuzuGuncelle();
 
@@ -881,12 +884,12 @@
 
             yanKarakterHasarVer() {
                 if (!this.yanKarakterler.length) return;
-                // %40 ihtimalle bir yan karaktere isabet
-                if (Math.random() > 0.4) return;
-
+                // Her vuruşta mutlaka bir yan karaktere isabet
                 const idx = Math.floor(Math.random() * this.yanKarakterler.length);
                 const k = this.yanKarakterler[idx];
-                const el = document.getElementById(`yan-karakter-${idx}`);
+                // ID yerine querySelectorAll ile bul (daha güvenli)
+                const tumEller = document.querySelectorAll('#side-characters img');
+                const el = tumEller[idx];
                 if (!el) return;
 
                 const bolumler = ['kafa', 'gogus', 'ayak'];
