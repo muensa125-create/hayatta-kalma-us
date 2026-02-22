@@ -684,7 +684,7 @@
     </div><!-- /game-container -->
 
     <!-- Sürüm numarası -->
-    <div class="version-number">v1.0.6</div>
+    <div class="version-number">v1.0.7</div>
 
     <script>
         class HayattaKalmaOyunu {
@@ -1280,7 +1280,7 @@
                 // Ana oyuncu karakterini ekle
                 const pc = document.createElement('img');
                 pc.id = 'player-character';
-                pc.src = 'images/arka (2).png';
+                pc.src = 'images/anakarakteraltagiderken.png';
                 pc.style.cssText = 'position:absolute;width:80px;height:100px;left:50%;top:50%;transform:translate(-50%,-50%);z-index:15;object-fit:contain;';
                 katman.appendChild(pc);
 
@@ -1288,10 +1288,10 @@
                 this._pcX = 50; this._pcY = 50;
                 if (!this._pcInterval) {
                     const imgs = {
-                        up: 'images/arka (1).png',
-                        down: 'images/arka (2).png',
-                        left: 'images/sol.png',
-                        right: 'images/sağ.png'
+                        up:    'images/anakarakteryukarıgiderken.png',
+                        down:  'images/anakarakteraltagiderken.png',
+                        left:  'images/anakaraktersolagiderken.png',
+                        right: 'images/anakaraktersağagiderken.png'
                     };
                     this._pcInterval = setInterval(() => {
                         if (this.oyunBitti || this.duraklatildi) return;
