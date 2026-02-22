@@ -555,8 +555,8 @@
                 <span class="value" id="population">0/50</span>
             </div>
             <div class="stat-chip">
-                <span class="label">GIDA</span>
-                <span class="value" id="food">100</span>
+                <span class="label">ORDU</span>
+                <span class="value" id="food">0</span>
             </div>
             <div class="stat-chip">
                 <span class="label">GÜN</span>
@@ -684,7 +684,7 @@
     </div><!-- /game-container -->
 
     <!-- Sürüm numarası -->
-    <div class="version-number">v1.2.0</div>
+    <div class="version-number">v1.2.1</div>
 
     <script>
         class HayattaKalmaOyunu {
@@ -834,10 +834,10 @@
                 let sonuc = this.aksiyonIsle(hedef);
                 this.geriBildirimGoster(hedef, sonuc);
 
-                // Her vuruşta gün ilerler (baskın sayacı her karşılaşmada azalır)
-                // Baş/göğüs vuruşunda ihanet/baskın olayları tetiklenmez (savaş anı)
-                const olaylariCalistir = !(hedef === 'head' || hedef === 'chest');
-                this.gunuIlerle(olaylariCalistir);
+                // Sadece düşman öldüğünde 1 gün ilerler
+                if (sonuc.basarili && (hedef === 'head' || hedef === 'chest' || hedef === 'leg')) {
+                    this.gunuIlerle(true);
+                }
 
                 // Düşman gerçekten etkisiz mi?
                 // missed veya başarısız bacak = düşman hayatta, yeni karşılaşma kur ama üsse kimse gitmiyor
@@ -1301,7 +1301,15 @@
                 // Üst istatistik barı (her zaman görünür)
                 setText('hp', this.oyuncuHp);
                 setText('population', `${ist.toplam}/${this.nufusLimiti}`);
-                setText('food', this.kaynaklar.gida);
+                // Ordu gücu
+                let ordoGucu = 0;
+                this.usNufusu.forEach(k => {
+                    if (k.tip === 'muhafiz')     ordoGucu += 3;
+                    else if (k.tip === 'isyanci') ordoGucu += 3;
+                    else if (k.tip === 'isci')    ordoGucu += 1;
+                    else if (k.tip === 'sihhiyeci') ordoGucu += 1;
+                });
+                setText('food', ordoGucu);
                 setText('day', this.mevcutGun);
 
                 // Ana Üs ekranı bilgileri
