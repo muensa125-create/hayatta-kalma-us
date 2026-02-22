@@ -684,7 +684,7 @@
     </div><!-- /game-container -->
 
     <!-- Sürüm numarası -->
-    <div class="version-number">v1.1.4</div>
+    <div class="version-number">v1.1.5</div>
 
     <script>
         class HayattaKalmaOyunu {
@@ -884,13 +884,13 @@
 
             yanKarakterHasarVer() {
                 if (!this.yanKarakterler.length) return;
-                // Her vuruşta mutlaka bir yan karaktere isabet
                 const idx = Math.floor(Math.random() * this.yanKarakterler.length);
                 const k = this.yanKarakterler[idx];
-                // ID yerine querySelectorAll ile bul (daha güvenli)
                 const tumEller = document.querySelectorAll('#side-characters img');
                 const el = tumEller[idx];
                 if (!el) return;
+                // Hasar animasyonu süresince yeniden çizimi engelle
+                this._hasarAnimasyonAktif = true;
 
                 const bolumler = ['kafa', 'gogus', 'ayak'];
                 const bolum = bolumler[Math.floor(Math.random() * bolumler.length)];
@@ -932,8 +932,9 @@
                 // Hasar görselini göster, 800ms sonra normale dön
                 el.src = gorsel;
                 setTimeout(() => {
-                    const elSonra = document.getElementById(`yan-karakter-${idx}`);
+                    const elSonra = document.querySelectorAll('#side-characters img')[idx];
                     if (elSonra) elSonra.src = normalGorseller[tip] || 'images/işci.png';
+                    this._hasarAnimasyonAktif = false;
                 }, 800);
             }
 
@@ -1277,8 +1278,10 @@
                 setText('base_raid_size',  `${this.sonrakiBaskinBuyuklugu} isyancı`);
                 setWidth('base_hp_bar', `${Math.max(0, this.oyuncuHp)}%`);
 
-                // Yan karakterleri savaş ekranında çiz
-                this.yanKarakterleriCiz();
+                // Yan karakterleri sadece hasar animasyonu yokken çiz
+                if (!this._hasarAnimasyonAktif) {
+                    this.yanKarakterleriCiz();
+                }
             }
 
             nufusIstatistikleri() {
