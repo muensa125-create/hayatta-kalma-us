@@ -241,32 +241,53 @@
             flex: 1;
             min-height: 220px;
             position: relative;
-            background-image: var(--bg-base);
-            background-size: cover;
-            background-position: center bottom;
             overflow: hidden;
             border-bottom: 5px solid rgba(44,62,80,0.9);
         }
 
-        @keyframes walkRight {
-            from { transform: translateX(-80px); }
-            to   { transform: translateX(110vw); }
+        /* Katman 1: Zemin */
+        .stage-ground {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: var(--bg-base);
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
         }
 
+        /* Katman 2: Karakterler */
+        .stage-characters {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* Karakter temel stili */
         .walker {
             position: absolute;
-            bottom: 8px;
-            width: 52px;
-            height: 52px;
+            width: 28px;
+            height: 42px;
             background-size: contain;
             background-repeat: no-repeat;
             background-position: bottom center;
-            animation: walkRight linear infinite;
         }
         .walker.isci      { background-image: url('images/işci.png'); }
         .walker.muhafiz   { background-image: url('images/muhafız.png'); }
         .walker.sihhiyeci { background-image: url('images/doktor (1).png'); }
         .walker.isyanci   { background-image: url('images/isyancı.png'); }
+
+        /* Üssün etrafındaki oval yol animasyonu */
+        @keyframes pathOuterCircle {
+            0%   { left: -5%;  top: 45%; }
+            25%  { left: 45%;  top: 10%; }
+            50%  { left: 95%;  top: 45%; }
+            75%  { left: 45%;  top: 80%; }
+            100% { left: -5%;  top: 45%; }
+        }
+        .walker-path-outer {
+            animation: pathOuterCircle linear infinite;
+        }
 
         .base-info-bar {
             flex: 0 0 auto;
@@ -489,7 +510,11 @@
             <!-- ANA ÜS EKRANı -->
             <div class="screen" id="screen-base">
                 <!-- Animasyonlu sahne -->
-                <div id="base-stage"></div>
+                <div id="base-stage">
+                    <div class="stage-ground"></div>
+                    <div class="stage-characters" id="stage-characters"></div>
+                    <div class="stage-overlay" style="pointer-events:none;"></div>
+                </div>
 
                 <!-- HP şeridi -->
                 <div class="hp-strip">
@@ -1040,50 +1065,41 @@
 
             walkerEkle(tip) {
                 if (this.ayarlar.pilModu) return;
-                const sahne = document.getElementById('base-stage');
-                if (!sahne) return;
+                const katman = document.getElementById('stage-characters');
+                if (!katman) return;
 
                 const walker = document.createElement('div');
-                walker.className = `walker ${tip}`;
+                walker.className = `walker walker-path-outer ${tip}`;
 
-                // Rastgele süre ve dikey konum
-                const sure = 10 + Math.random() * 12; // 10-22 saniye
-                const altOffset = 4 + Math.random() * 20; // zemin üzerinde biraz farklı yükseklik
+                // Her walker farklı hızda ve farklı fazda başlasın
+                const sure = 16 + Math.random() * 14; // 16-30 saniye
                 walker.style.animationDuration = `${sure}s`;
-                walker.style.bottom = `${altOffset}px`;
-                walker.style.animationDelay = `${-Math.random() * sure}s`; // hemen başlasın
+                walker.style.animationDelay = `${-(Math.random() * sure)}s`;
 
-                sahne.appendChild(walker);
-
-                // Animasyon bitince kaldır ve yeniden ekle (sonsuz döngü için)
-                walker.addEventListener('animationiteration', () => {
-                    walker.style.bottom = `${4 + Math.random() * 20}px`;
-                });
+                katman.appendChild(walker);
             }
 
             karakterleriAnimasyonla() {
                 // Mevcut nüfusu sahneye yansıt
-                const sahne = document.getElementById('base-stage');
-                if (!sahne) return;
-                sahne.innerHTML = '';
+                const katman = document.getElementById('stage-characters');
+                if (!katman) return;
+                katman.innerHTML = '';
 
                 this.usNufusu.forEach(k => this.walkerEkle(k.tip));
 
                 // Nüfus değişimlerini periyodik olarak senkronize et
                 setInterval(() => {
                     if (this.duraklatildi || this.oyunBitti || this.ayarlar.pilModu) return;
-                    const sahne = document.getElementById('base-stage');
-                    if (!sahne) return;
-                    const mevcutSayi = sahne.querySelectorAll('.walker').length;
+                    const katman = document.getElementById('stage-characters');
+                    if (!katman) return;
+                    const mevcutSayi = katman.querySelectorAll('.walker').length;
                     const hedefSayi = this.usNufusu.length;
                     if (mevcutSayi < hedefSayi) {
-                        // Yeni katılanları ekle
                         for (let i = mevcutSayi; i < hedefSayi; i++) {
                             this.walkerEkle(this.usNufusu[i].tip);
                         }
                     } else if (mevcutSayi > hedefSayi) {
-                        // Fazla walker'ları kaldır
-                        const walkers = sahne.querySelectorAll('.walker');
+                        const walkers = katman.querySelectorAll('.walker');
                         for (let i = hedefSayi; i < mevcutSayi; i++) {
                             walkers[i].remove();
                         }
