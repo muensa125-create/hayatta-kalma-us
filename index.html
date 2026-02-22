@@ -818,29 +818,27 @@
                 let sonuc = this.aksiyonIsle(hedef);
                 this.geriBildirimGoster(hedef, sonuc);
 
-                // Gün ilerlemesi: head/chest vuruşlarında baskın/ihanet tetikleme
+                // Her vuruşta gün ilerler (baskın sayacı her karşılaşmada azalır)
+                // Baş/göğüs vuruşunda ihanet/baskın olayları tetiklenmez (savaş anı)
                 const olaylariCalistir = !(hedef === 'head' || hedef === 'chest');
                 this.gunuIlerle(olaylariCalistir);
 
-                // Düşman gerçekten etkisiz mi? (baş/göğüs = kesin ölüm, bacak = %50)
+                // Düşman gerçekten etkisiz mi?
+                // missed veya başarısız bacak = düşman hayatta, yeni karşılaşma kur ama üsse kimse gitmiyor
                 const dusmanOldu = sonuc.basarili && (hedef === 'head' || hedef === 'chest' || hedef === 'leg');
 
                 if (dusmanOldu) {
                     this.yanKarakterler.forEach(k => this.karakterEkle(k.tip, k.kisilik));
-                    // Yan karakterleri hemen temizle (üsse gittiler)
                     const alan = document.getElementById('side-characters');
                     if (alan) alan.innerHTML = '';
                 }
-                
+
                 this.arayuzuGuncelle();
-                
-                // 1 saniye sonra karakteri normale döndür
-                // Düşman öldüyse yeni karşılaşma kur, öldürülmediyse (ıskalama/karşı saldırı) aynı düşman kalsın
+
                 setTimeout(() => {
                     this.karakteriNormaleDondur();
-                    if (dusmanOldu) {
-                        this.yeniKarsilasmaOlustur();
-                    }
+                    // Her durumda yeni karşılaşma kur (ıskalama dahil — düşman kaçtı, yeni biri geldi)
+                    this.yeniKarsilasmaOlustur();
                     this.aksiyonTimerBaslat(true);
                 }, 1000);
             }
@@ -1122,13 +1120,15 @@
 
                 // Her yeni kişi için 5 saniye ver (resume'da sıfırlama)
                 if (yenidenBaslat) this.kalanSure = 5.0;
+                let sureBitti = false;
                 this.timerInterval = setInterval(() => {
                     if (!this.duraklatildi && !this.oyunBitti) {
                         if (window.uiDurum?.aktifEkran && window.uiDurum.aktifEkran !== 'war') return;
-                        this.kalanSure -= 0.1;
+                        this.kalanSure = Math.max(0, this.kalanSure - 0.1);
                         document.getElementById('timer').textContent = `Süre: ${this.kalanSure.toFixed(1)}`;
                         
-                        if (this.kalanSure <= 0) {
+                        if (this.kalanSure <= 0 && !sureBitti) {
+                            sureBitti = true;
                             this.aksiyonTimerDurdur();
                             this.vur('missed', window.innerWidth / 2, window.innerHeight / 2);
                         }
