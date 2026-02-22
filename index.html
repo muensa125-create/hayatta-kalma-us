@@ -283,18 +283,6 @@
         .walker.sihhiyeci { background-image: url('images/doktor (1).png'); }
         .walker.isyanci   { background-image: url('images/isyancı.png'); }
 
-        /* Oyuncu karakteri */
-        #player-character {
-            position: absolute !important;
-            width: 48px !important;
-            height: 48px !important;
-            background-size: contain !important;
-            background-repeat: no-repeat !important;
-            background-position: center !important;
-            z-index: 20 !important;
-            transition: left 0.2s ease, top 0.2s ease;
-            display: block !important;
-        }
 
         
         .base-info-bar {
@@ -600,7 +588,6 @@
                     <div class="stage-ground"></div>
                     <div class="stage-characters" id="stage-characters"></div>
                     <div class="stage-overlay" style="pointer-events:none;"></div>
-                    <div id="player-character" class="player-character"></div>
                 </div>
 
                 <!-- HP şeridi -->
@@ -697,7 +684,7 @@
     </div><!-- /game-container -->
 
     <!-- Sürüm numarası -->
-    <div class="version-number">v1.0.4</div>
+    <div class="version-number">v1.0.5</div>
 
     <script>
         class HayattaKalmaOyunu {
@@ -723,13 +710,6 @@
                     pilModu: false
                 };
 
-                // Oyuncu karakteri
-                this.oyuncuKarakter = {
-                    x: 50,
-                    y: 50,
-                    yon: 'down',
-                    hiz: 2
-                };
                 
                 this.init();
             }
@@ -746,7 +726,6 @@
                 this.aksiyonTimerBaslat(true);
                 this.karakterleriAnimasyonla();
                 this.nisangahKurulumu();
-                this.oyuncuKarakteriBaslat();
             }
 
             yeniKarsilasmaOlustur() {
@@ -1298,6 +1277,39 @@
                 if (!katman) return;
                 katman.innerHTML = '';
 
+                // Ana oyuncu karakterini ekle
+                const pc = document.createElement('img');
+                pc.id = 'player-character';
+                pc.src = 'images/arka (2).png';
+                pc.style.cssText = 'position:absolute;width:48px;height:60px;left:50%;top:50%;transform:translate(-50%,-50%);z-index:15;object-fit:contain;';
+                katman.appendChild(pc);
+
+                // Hareket başlat
+                this._pcX = 50; this._pcY = 50;
+                if (!this._pcInterval) {
+                    const imgs = {
+                        up: 'images/arka (1).png',
+                        down: 'images/arka (2).png',
+                        left: 'images/sol.png',
+                        right: 'images/sağ.png'
+                    };
+                    this._pcInterval = setInterval(() => {
+                        if (this.oyunBitti || this.duraklatildi) return;
+                        const yonler = ['up','down','left','right'];
+                        const yon = yonler[Math.floor(Math.random()*yonler.length)];
+                        if (yon==='up')    this._pcY = Math.max(5,  this._pcY - 3);
+                        if (yon==='down')  this._pcY = Math.min(90, this._pcY + 3);
+                        if (yon==='left')  this._pcX = Math.max(5,  this._pcX - 3);
+                        if (yon==='right') this._pcX = Math.min(90, this._pcX + 3);
+                        const el = document.getElementById('player-character');
+                        if (el) {
+                            el.src = imgs[yon];
+                            el.style.left = this._pcX + '%';
+                            el.style.top  = this._pcY + '%';
+                        }
+                    }, 800);
+                }
+
                 // Tiplere göre indeks sayacı
                 const tipIndeksleri = { isci: 0, muhafiz: 0, sihhiyeci: 0, isyanci: 0 };
 
@@ -1334,68 +1346,6 @@
                 }, 2000);
             }
 
-            oyuncuKarakteriBaslat() {
-                // İlk render - ekrandan bağımsız
-                this.oyuncuKarakteriGuncelle();
-                this.oyuncuHareketiniBaslat();
-            }
-
-            oyuncuKarakteriGuncelle() {
-                const karakter = document.getElementById('player-character');
-                if (!karakter) return;
-
-                karakter.style.position = 'absolute';
-                karakter.style.left = `${this.oyuncuKarakter.x}%`;
-                karakter.style.top = `${this.oyuncuKarakter.y}%`;
-                karakter.style.transform = 'translate(-50%, -50%)';
-                karakter.style.width = '48px';
-                karakter.style.height = '48px';
-                karakter.style.backgroundSize = 'contain';
-                karakter.style.backgroundRepeat = 'no-repeat';
-                karakter.style.backgroundPosition = 'center';
-                karakter.style.zIndex = '10';
-
-                // Yöne göre resim inline set et (boşluk encode edildi)
-                const resimler = {
-                    up:    "url('images/arka%20(1).png')",
-                    down:  "url('images/arka%20(2).png')",
-                    left:  "url('images/sol.png')",
-                    right: "url('images/sa%C4%9F.png')"
-                };
-                karakter.style.backgroundImage = resimler[this.oyuncuKarakter.yon] || resimler.down;
-            }
-
-            oyuncuHareketiniBaslat() {
-                // Rastgele hareket sistemi
-                setInterval(() => {
-                    if (this.oyunBitti || this.duraklatildi) return;
-                    // Hareket sadece base ekranında ama render her zaman
-
-                    // Rastgele yön seç (çapraz yok)
-                    const yonler = ['up', 'down', 'left', 'right'];
-                    const yeniYon = yonler[Math.floor(Math.random() * yonler.length)];
-                    this.oyuncuKarakter.yon = yeniYon;
-
-                    // Hareket et
-                    const adim = this.oyuncuKarakter.hiz;
-                    switch (yeniYon) {
-                        case 'up':
-                            this.oyuncuKarakter.y = Math.max(5, this.oyuncuKarakter.y - adim);
-                            break;
-                        case 'down':
-                            this.oyuncuKarakter.y = Math.min(95, this.oyuncuKarakter.y + adim);
-                            break;
-                        case 'left':
-                            this.oyuncuKarakter.x = Math.max(5, this.oyuncuKarakter.x - adim);
-                            break;
-                        case 'right':
-                            this.oyuncuKarakter.x = Math.min(95, this.oyuncuKarakter.x + adim);
-                            break;
-                    }
-
-                    this.oyuncuKarakteriGuncelle();
-                }, 800); // Her 800ms'de bir hareket
-            }
 
             oyunBittiGoster(kazandi) {
                 const oyunBittiDiv = document.createElement('div');
