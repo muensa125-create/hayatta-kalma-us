@@ -684,7 +684,7 @@
     </div><!-- /game-container -->
 
     <!-- Sürüm numarası -->
-    <div class="version-number">v1.1.2</div>
+    <div class="version-number">v1.1.3</div>
 
     <script>
         class HayattaKalmaOyunu {
@@ -762,9 +762,7 @@
                     const el = document.createElement('img');
                     el.id = `yan-karakter-${i}`;
                     el.dataset.tip = k.tip;
-                    el.dataset.idx = i;
 
-                    // Normal görsel
                     const normalGorseller = {
                         isci: 'images/işci.png',
                         muhafiz: 'images/muhafız.png',
@@ -772,7 +770,7 @@
                         isyanci: 'images/isyancı.png'
                     };
                     el.src = normalGorseller[k.tip] || 'images/işci.png';
-                    el.style.cssText = 'position:absolute;width:38px;height:55px;object-fit:contain;';
+                    el.style.cssText = 'position:absolute;width:130px;height:130px;object-fit:contain;transform:translate(-50%,-50%);opacity:0.88;';
 
                     const slot = slots[i % slots.length];
                     const x = (slot.x / 100) * w;
