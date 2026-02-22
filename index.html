@@ -684,7 +684,7 @@
     </div><!-- /game-container -->
 
     <!-- Sürüm numarası -->
-    <div class="version-number">v1.1.8</div>
+    <div class="version-number">v1.1.9</div>
 
     <script>
         class HayattaKalmaOyunu {
@@ -1127,8 +1127,15 @@
                 if (gucFarki > 0) this.oyuncuHp -= Math.min(gucFarki * 3, 40);
                 this.oyuncuHp = Math.max(0, this.oyuncuHp);
 
-                // Baskın raporunu göster
-                this.baskinRaporuGoster(dusmanGucu, bizimGucumuz, olduler, yaralilar);
+                if (gucFarki > 0) {
+                    // Düşman kazandı — oyun bitti
+                    this.oyunBitti = true;
+                    this.aksiyonTimerDurdur();
+                    setTimeout(() => this.oyunBittiGoster(false), 500);
+                } else {
+                    // Biz kazandık — raporu göster
+                    this.baskinRaporuGoster(dusmanGucu, bizimGucumuz, olduler, yaralilar);
+                }
             }
 
             baskinRaporuGoster(dusmanGucu, bizimGucumuz, olduler, yaralilar) {
@@ -1151,7 +1158,7 @@
                 rapor.id = 'raid-report';
                 rapor.innerHTML = `
                     <div class="raid-report-box">
-                        <div class="raid-report-title">${kazandik ? '⚔ BASKIN SAVUŞTURULDU' : '💀 BASKIN BAŞARISIZ'}</div>
+                        <div class="raid-report-title">⚔ BASKIN SAVUŞTURULDU</div>
                         <div class="raid-report-row">
                             <span>Düşman Gücü</span><span>${dusmanGucu}</span>
                         </div>
