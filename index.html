@@ -283,6 +283,22 @@
         .walker.sihhiyeci { background-image: url('images/doktor (1).png'); }
         .walker.isyanci   { background-image: url('images/isyancı.png'); }
 
+        /* Oyuncu karakteri */
+        .player-character {
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 10;
+            transition: left 0.2s ease, top 0.2s ease;
+        }
+        .player-character.up    { background-image: url('images/arka (1).png'); }
+        .player-character.down  { background-image: url('images/arka (2).png'); }
+        .player-character.left  { background-image: url('images/sol.png'); }
+        .player-character.right { background-image: url('images/sag.png'); }
+
         
         .base-info-bar {
             flex: 0 0 auto;
@@ -573,7 +589,9 @@
                 <!-- Animasyonlu sahne -->
                 <div id="base-stage">
                     <div class="stage-ground"></div>
-                    <div class="stage-characters" id="stage-characters"></div>
+                    <div class="stage-characters" id="stage-characters">
+                        <div id="player-character" class="player-character"></div>
+                    </div>
                     <div class="stage-overlay" style="pointer-events:none;"></div>
                 </div>
 
@@ -693,6 +711,14 @@
                     hassasiyet: 100,
                     pilModu: false
                 };
+
+                // Oyuncu karakteri
+                this.oyuncuKarakter = {
+                    x: 50,
+                    y: 50,
+                    yon: 'down',
+                    hiz: 2
+                };
                 
                 this.init();
             }
@@ -709,6 +735,7 @@
                 this.aksiyonTimerBaslat(true);
                 this.karakterleriAnimasyonla();
                 this.nisangahKurulumu();
+                this.oyuncuKarakteriBaslat();
             }
 
             yeniKarsilasmaOlustur() {
@@ -1294,6 +1321,59 @@
                         }
                     }
                 }, 2000);
+            }
+
+            oyuncuKarakteriBaslat() {
+                const karakter = document.getElementById('player-character');
+                if (!karakter) return;
+
+                // Başlangıç pozisyonu ve yön
+                this.oyuncuKarakteriGuncelle();
+                this.oyuncuHareketiniBaslat();
+            }
+
+            oyuncuKarakteriGuncelle() {
+                const karakter = document.getElementById('player-character');
+                if (!karakter) return;
+
+                karakter.style.left = `${this.oyuncuKarakter.x}%`;
+                karakter.style.top = `${this.oyuncuKarakter.y}%`;
+                karakter.style.transform = 'translate(-50%, -50%)';
+
+                // Yöne göre sınıf değiştir
+                karakter.className = `player-character ${this.oyuncuKarakter.yon}`;
+            }
+
+            oyuncuHareketiniBaslat() {
+                // Rastgele hareket sistemi
+                setInterval(() => {
+                    if (this.oyunBitti || this.duraklatildi) return;
+                    if (window.uiDurum?.aktifEkran !== 'base') return;
+
+                    // Rastgele yön seç (çapraz yok)
+                    const yonler = ['up', 'down', 'left', 'right'];
+                    const yeniYon = yonler[Math.floor(Math.random() * yonler.length)];
+                    this.oyuncuKarakter.yon = yeniYon;
+
+                    // Hareket et
+                    const adim = this.oyuncuKarakter.hiz;
+                    switch (yeniYon) {
+                        case 'up':
+                            this.oyuncuKarakter.y = Math.max(5, this.oyuncuKarakter.y - adim);
+                            break;
+                        case 'down':
+                            this.oyuncuKarakter.y = Math.min(95, this.oyuncuKarakter.y + adim);
+                            break;
+                        case 'left':
+                            this.oyuncuKarakter.x = Math.max(5, this.oyuncuKarakter.x - adim);
+                            break;
+                        case 'right':
+                            this.oyuncuKarakter.x = Math.min(95, this.oyuncuKarakter.x + adim);
+                            break;
+                    }
+
+                    this.oyuncuKarakteriGuncelle();
+                }, 800); // Her 800ms'de bir hareket
             }
 
             oyunBittiGoster(kazandi) {
