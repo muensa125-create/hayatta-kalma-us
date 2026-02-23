@@ -684,7 +684,7 @@
     </div><!-- /game-container -->
 
     <!-- Sürüm numarası -->
-    <div class="version-number">v1.2.1</div>
+    <div class="version-number">v1.2.2</div>
 
     <script>
         class HayattaKalmaOyunu {
@@ -738,6 +738,12 @@
                     const kisilik = tip === 'muhafiz' ? 'sadik' : this.rastgeleKisilik();
                     this.yanKarakterler.push({ tip, kisilik });
                 }
+                // Rastgele pozisyonda şişe oluştur
+                this.sise = {
+                    kirili: false,
+                    x: 10 + Math.floor(Math.random() * 80), // %10-%90 arasi
+                    y: 10 + Math.floor(Math.random() * 70)  // %10-%80 arasi
+                };
                 this.yanKarakterleriCiz();
             }
 
@@ -780,6 +786,23 @@
 
                     alan.appendChild(el);
                 });
+
+                // Şişeyi çiz
+                if (this.sise) {
+                    const siseEl = document.createElement('img');
+                    siseEl.id = 'sise-obj';
+                    siseEl.src = this.sise.kirili ? 'images/kırk şişe.png' : 'images/şişe.png';
+                    siseEl.style.cssText = 'position:absolute;width:60px;height:60px;object-fit:contain;transform:translate(-50%,-50%);cursor:pointer;z-index:10;';
+                    siseEl.style.left = this.sise.x + '%';
+                    siseEl.style.top  = this.sise.y + '%';
+                    siseEl.addEventListener('click', () => {
+                        if (!this.sise.kirili) {
+                            this.sise.kirili = true;
+                            siseEl.src = 'images/kırk şişe.png';
+                        }
+                    });
+                    alan.appendChild(siseEl);
+                }
             }
 
             nisangahKurulumu() {
