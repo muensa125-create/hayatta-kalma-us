@@ -684,7 +684,7 @@
     </div><!-- /game-container -->
 
     <!-- Sürüm numarası -->
-    <div class="version-number">v1.2.2</div>
+    <div class="version-number">v1.2.3</div>
 
     <script>
         class HayattaKalmaOyunu {
@@ -795,10 +795,11 @@
                     siseEl.style.cssText = 'position:absolute;width:60px;height:60px;object-fit:contain;transform:translate(-50%,-50%);cursor:pointer;z-index:10;';
                     siseEl.style.left = this.sise.x + '%';
                     siseEl.style.top  = this.sise.y + '%';
-                    siseEl.addEventListener('click', () => {
+                    siseEl.addEventListener('click', (e) => {
+                        e.stopPropagation();
                         if (!this.sise.kirili) {
                             this.sise.kirili = true;
-                            siseEl.src = 'images/kırk şişe.png';
+                            siseEl.src = 'images/k\u0131rk \u015fi\u015fe.png';
                         }
                     });
                     alan.appendChild(siseEl);
