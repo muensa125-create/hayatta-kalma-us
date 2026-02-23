@@ -684,7 +684,7 @@
     </div><!-- /game-container -->
 
     <!-- Sürüm numarası -->
-    <div class="version-number">v1.2.3</div>
+    <div class="version-number">v1.2.4</div>
 
     <script>
         class HayattaKalmaOyunu {
@@ -786,24 +786,30 @@
 
                     alan.appendChild(el);
                 });
+            }
 
-                // Şişeyi çiz
-                if (this.sise) {
-                    const siseEl = document.createElement('img');
-                    siseEl.id = 'sise-obj';
-                    siseEl.src = this.sise.kirili ? 'images/kırk şişe.png' : 'images/şişe.png';
-                    siseEl.style.cssText = 'position:absolute;width:60px;height:60px;object-fit:contain;transform:translate(-50%,-50%);cursor:pointer;z-index:10;';
-                    siseEl.style.left = this.sise.x + '%';
-                    siseEl.style.top  = this.sise.y + '%';
-                    siseEl.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        if (!this.sise.kirili) {
-                            this.sise.kirili = true;
-                            siseEl.src = 'images/k\u0131rk \u015fi\u015fe.png';
-                        }
-                    });
-                    alan.appendChild(siseEl);
-                }
+            siseCiz() {
+                const eskiSise = document.getElementById('sise-obj');
+                if (eskiSise) eskiSise.remove();
+                if (!this.sise) return;
+
+                const alan = document.getElementById('action-area');
+                if (!alan) return;
+
+                const siseEl = document.createElement('img');
+                siseEl.id = 'sise-obj';
+                siseEl.src = this.sise.kirili ? 'images/kırk şişe.png' : 'images/şişe.png';
+                siseEl.style.cssText = 'position:absolute;width:60px;height:60px;object-fit:contain;transform:translate(-50%,-50%);cursor:pointer;z-index:20;pointer-events:all;';
+                siseEl.style.left = this.sise.x + '%';
+                siseEl.style.top  = this.sise.y + '%';
+                siseEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!this.sise.kirili) {
+                        this.sise.kirili = true;
+                        siseEl.src = 'images/kırk şişe.png';
+                    }
+                });
+                alan.appendChild(siseEl);
             }
 
             nisangahKurulumu() {
@@ -876,6 +882,9 @@
                         this.yanKarakterler.forEach(k => this.karakterEkle(k.tip, k.kisilik));
                         const alan = document.getElementById('side-characters');
                         if (alan) alan.innerHTML = '';
+                        const siseEl = document.getElementById('sise-obj');
+                        if (siseEl) siseEl.remove();
+                        this.sise = null;
                     }, 1000);
                 }
 
